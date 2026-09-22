@@ -2,7 +2,7 @@
 
 The Launchbase landing page — a [TanStack Start](https://tanstack.com/start)
 marketing site, statically generated and API-less. Unlike
-[`platform/`](../platform/README.md), there is no orval-generated API client
+[`app/`](../app/README.md), there is no orval-generated API client
 here; it's just static pages and the full
 [shadcn/ui](https://ui.shadcn.com) component library.
 
@@ -29,7 +29,7 @@ make run                                  # http://localhost:3000
 ```
 
 `make run` starts the Vite dev server on port 3000 (the api runs on 8000,
-`platform/` on 3001, `internal/` on 3002).
+`app/` on 3001, `internal/` on 3002).
 
 ## Routing
 
@@ -80,7 +80,7 @@ Vite and Rolldown) rather than ESLint and Prettier: `oxlint` reads
 `.oxlintrc.json`, `oxfmt` reads `.oxfmtrc.json`. Both are Rust binaries with no
 plugin dependencies — a full lint of `site/` runs in ~70ms against ESLint's
 ~5s. The oxfmt config was migrated from the old `.prettierrc` and produces
-byte-identical output, so nothing was reformatted in the switch. `platform/`
+byte-identical output, so nothing was reformatted in the switch. `app/`
 and `internal/` use the same toolchain.
 
 Run the checks manually:
@@ -100,6 +100,6 @@ make build             # -> dist/client/
 
 ### Cloudflare Static Hosting
 
-Like `platform/`, this template is optimized for deployment on **Cloudflare
+Like `app/`, this template is optimized for deployment on **Cloudflare
 Pages**. Publish the `dist/client/` directory — it contains the prerendered
 HTML plus hashed assets, with no server component.

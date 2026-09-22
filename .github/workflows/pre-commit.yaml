@@ -27,16 +27,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: platform/.nvmrc
+          node-version-file: app/.nvmrc
           cache: npm
           cache-dependency-path: |
-            platform/package-lock.json
+            app/package-lock.json
             site/package-lock.json
             internal/package-lock.json
 
-      - name: Install platform dependencies
+      - name: Install app dependencies
         run: npm ci
-        working-directory: platform
+        working-directory: app
 
       - name: Install site dependencies
         run: npm ci

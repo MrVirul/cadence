@@ -7,9 +7,9 @@ from argon2.exceptions import VerifyMismatchError
 from app.config import settings
 
 # JWT audiences scope a token to the surface it was issued for. A token minted
-# for one surface fails audience validation on another, so a platform session
+# for one surface fails audience validation on another, so an app session
 # cannot be replayed against the internal API (or vice versa) even for an admin.
-JWT_AUDIENCE_PLATFORM = "platform"
+JWT_AUDIENCE_APP = "app"
 JWT_AUDIENCE_INTERNAL = "internal"
 
 # Initialize Argon2 password hasher with secure defaults

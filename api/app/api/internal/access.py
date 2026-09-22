@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends, status
 
-from app.api.platform.access import build_http_user_dependency
+from app.api.app.access import build_http_user_dependency
 from app.exceptions import APIException
 from app.models import User
 from app.security import JWT_AUDIENCE_INTERNAL
@@ -13,7 +13,7 @@ http_admin_required_exception = APIException(
     message="Admin privileges required",
 )
 
-# Internal surface: `internal_access_token` cookie, internal-audience tokens. A platform
+# Internal surface: `internal_access_token` cookie, internal-audience tokens. An app
 # token (different audience, different cookie) never resolves a user here.
 get_current_http_user = build_http_user_dependency(
     audience=JWT_AUDIENCE_INTERNAL, cookie_name="internal_access_token"

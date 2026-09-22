@@ -25,7 +25,7 @@ uv run fastapi dev                       # http://localhost:8000
 
 Git hooks are managed at the repo root — see the [root README](../README.md#git-hooks).
 
-Platform API docs: <http://localhost:8000/platform/docs>
+App API docs: <http://localhost:8000/app/docs>
 
 ## Common workflows
 

@@ -14,7 +14,7 @@ from app.security import (
     verify_password,
 )
 
-# Internal sessions use a dedicated cookie so an admin can hold platform and
+# Internal sessions use a dedicated cookie so an admin can hold app and
 # internal sessions at once without one overwriting the other.
 INTERNAL_COOKIE_NAME = "internal_access_token"
 

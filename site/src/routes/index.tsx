@@ -23,9 +23,9 @@ const stack = [
     body: "Async SQLAlchemy, Postgres, Alembic migrations, JWT auth and pytest — the service, wired and ready.",
   },
   {
-    dir: "platform/",
+    dir: "app/",
     icon: LayoutTemplate,
-    title: "TanStack platform",
+    title: "TanStack app",
     body: "The SPA console, with Tailwind, shadcn/ui and a typed API client generated from OpenAPI.",
   },
   {

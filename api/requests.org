@@ -2,8 +2,8 @@
 # eval: (verb-mode)
 # End:
 
-* Platform API                                                         :verb:
-Template http://localhost:8000/platform
+* App API                                                         :verb:
+Template http://localhost:8000/app
 # Access-Token: Bearer TOKEN
 
 ** Health check                                                       :verb:

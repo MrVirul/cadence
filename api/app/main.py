@@ -5,8 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 
+from app.api.app.router import router as app_router
 from app.api.internal.router import router as internal_router
-from app.api.platform.router import router as platform_router
 from app.config import settings
 from app.exceptions import APIException
 
@@ -33,9 +33,9 @@ app = FastAPI(
     redoc_url=redoc_url,
 )
 
-platform_api = FastAPI(
+app_api = FastAPI(
     contact={"name": "Chamoda Pandithage", "email": "chamoda@xaventra.com"},
-    description="Platform api endpoints",
+    description="App api endpoints",
     generate_unique_id_function=route_operation_id,
     openapi_tags=[
         {"name": "meta", "description": "Health and service metadata"},
@@ -48,20 +48,20 @@ platform_api = FastAPI(
 )
 
 
-@platform_api.exception_handler(APIException)
+@app_api.exception_handler(APIException)
 async def api_exception_handler(request: Request, exc: APIException):
     return exc.to_response()
 
 
-platform_api.include_router(platform_router)
-platform_api.add_middleware(
+app_api.include_router(app_router)
+app_api.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.mount("/platform", platform_api, "platform")
+app.mount("/app", app_api, "app")
 
 
 internal_api = FastAPI(

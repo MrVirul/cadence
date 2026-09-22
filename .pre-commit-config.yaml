@@ -47,31 +47,31 @@ repos:
         files: ^api/uv\.lock$
         pass_filenames: false
         entry: bash -c 'cd api && uv export --no-hashes -o requirements-test.txt'
-      - id: oxfmt-platform
-        name: oxfmt (platform)
+      - id: oxfmt-app
+        name: oxfmt (app)
         language: system
-        files: ^platform/.*\.(js|jsx|ts|tsx|json|md|yaml|yml|css|scss|sass)$
-        entry: bash -c 'cd platform && npx oxfmt --no-error-on-unmatched-pattern "${@#platform/}"' --
-      - id: oxlint-platform
-        name: oxlint (platform)
+        files: ^app/.*\.(js|jsx|ts|tsx|json|md|yaml|yml|css|scss|sass)$
+        entry: bash -c 'cd app && npx oxfmt --no-error-on-unmatched-pattern "${@#app/}"' --
+      - id: oxlint-app
+        name: oxlint (app)
         language: system
-        files: ^platform/.*\.(js|jsx|ts|tsx)$
-        entry: bash -c 'cd platform && npx oxlint --fix --deny-warnings --no-error-on-unmatched-pattern "${@#platform/}"' --
+        files: ^app/.*\.(js|jsx|ts|tsx)$
+        entry: bash -c 'cd app && npx oxlint --fix --deny-warnings --no-error-on-unmatched-pattern "${@#app/}"' --
       # Regenerating the route tree is only needed when a route file changed;
       # splitting it out keeps it off the common edit-a-component commit.
-      - id: routes-platform
-        name: routes (platform)
+      - id: routes-app
+        name: routes (app)
         language: system
-        files: ^platform/src/routes/.*\.(ts|tsx)$
+        files: ^app/src/routes/.*\.(ts|tsx)$
         pass_filenames: false
-        entry: bash -c 'cd platform && npx tsr generate'
-      - id: type-check-platform
-        name: type-check (platform)
+        entry: bash -c 'cd app && npx tsr generate'
+      - id: type-check-app
+        name: type-check (app)
         language: system
-        files: ^platform/.*\.(ts|tsx)$
+        files: ^app/.*\.(ts|tsx)$
         pass_filenames: false
         # The guard covers a fresh clone, where the gitignored tree is absent.
-        entry: bash -c 'cd platform && { [ -f src/routeTree.gen.ts ] || npx tsr generate; } && npx tsc --noEmit'
+        entry: bash -c 'cd app && { [ -f src/routeTree.gen.ts ] || npx tsr generate; } && npx tsc --noEmit'
       - id: oxfmt-site
         name: oxfmt (site)
         language: system
