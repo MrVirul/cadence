@@ -1,17 +1,51 @@
 from __future__ import annotations
 
-from pydantic import UUID4, EmailStr
+from typing import Literal
+
+from pydantic import UUID4, ConfigDict, EmailStr, Field, model_validator
 
 from app.schemas import DateTime, Model
 
+# Org roles and the subset an invite may grant. Kept as `Literal`s so responses
+# advertise the allowed values; services always store the same string values.
+OrgRole = Literal["owner", "admin", "member"]
+InviteRole = Literal["admin", "member"]
 
-class AuthRequest(Model):
+
+class RequestModel(Model):
+    """Request schemas reject unknown fields.
+
+    This is the tenancy guard at the schema layer: a client can never smuggle in
+    a server-controlled column (`org_id`, `role`, `is_admin`, `status`, ...).
+    """
+
+    model_config = ConfigDict(
+        extra="forbid", str_strip_whitespace=True, from_attributes=True
+    )
+
+
+class AuthRequest(RequestModel):
     email: EmailStr
     password: str
 
 
 class AuthResponse(Model):
     access_token: str
+
+
+class SignupRequest(RequestModel):
+    email: EmailStr
+    password: str = Field(min_length=10)
+    name: str | None = Field(default=None, max_length=200)
+    # Exactly one of these must be supplied; enforced below.
+    org_name: str | None = Field(default=None, min_length=1, max_length=200)
+    invite_token: str | None = Field(default=None, min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def _exactly_one_target(self) -> SignupRequest:
+        if (self.org_name is None) == (self.invite_token is None):
+            raise ValueError("Provide exactly one of org_name or invite_token")
+        return self
 
 
 class UserResponse(Model):
@@ -21,3 +55,50 @@ class UserResponse(Model):
     first_name: str
     last_name: str
     email: str
+
+
+class OrgResponse(Model):
+    id: UUID4
+    name: str
+    slug: str
+    created_at: DateTime
+
+
+class SignupMembership(Model):
+    org_id: UUID4
+    org_name: str
+    role: OrgRole
+
+
+class SignupResponse(Model):
+    access_token: str
+    user: UserResponse
+    membership: SignupMembership
+
+
+class MeMembership(Model):
+    org: OrgResponse
+    role: OrgRole
+
+
+class MeResponse(Model):
+    user: UserResponse
+    memberships: list[MeMembership]
+
+
+class OrgCreateRequest(RequestModel):
+    name: str = Field(min_length=1, max_length=200)
+
+
+class InvitePreviewResponse(Model):
+    org_name: str
+    role: InviteRole
+
+
+class AcceptedMembership(Model):
+    org_id: UUID4
+    role: InviteRole
+
+
+class InviteAcceptResponse(Model):
+    membership: AcceptedMembership

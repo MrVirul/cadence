@@ -11,23 +11,72 @@ GET /health
 # Returns: 200 OK with {"status": "healthy"} when healthy
 # Returns: 503 Service Unavailable with {"status": "unhealthy"} when unhealthy
 
-** Authenticate
-POST /auth
+** Sign up (create org)
+POST /auth/signup
 Content-Type: application/json
-# Returns: 200 OK with access token
+# Returns: 201 Created with {access_token, user, membership}
+# Errors: 409 conflict (email taken), 422 validation_error (weak password,
+# is_admin/role/org_id in body, or not exactly one of org_name/invite_token)
 
 {
-  "email": "user@example.com",
-  "password": "11111111"
+  "email": "ada@example.com",
+  "password": "longenough1",
+  "name": "Ada Lovelace",
+  "org_name": "Analytical Engines"
 }
 
-** Logout
-POST /logout
+** Sign up (accept invite)
+POST /auth/signup
+Content-Type: application/json
+# Returns: 201 Created with {access_token, user, membership}
+# Errors: 404 invite_invalid, 409 conflict (email taken), 422 validation_error
+
+{
+  "email": "grace@example.com",
+  "password": "longenough1",
+  "invite_token": "TOKEN"
+}
+
+** Log in
+POST /auth/login
+Content-Type: application/json
+# Returns: 200 OK with {access_token}
+# Errors: 401 unauthorized (generic — wrong password, unknown email or
+# deactivated user), 422 validation_error
+
+{
+  "email": "ada@example.com",
+  "password": "longenough1"
+}
+
+** Log out
+POST /auth/logout
 # Returns: 200 OK with {"message": "Successfully logged out"}
 
-** Get current user
-GET /users/self
-# Returns: 200 OK with user details
+** Get current user + memberships
+GET /me
+# Returns: 200 OK with {user, memberships: [{org, role}]}
+# Requires: Authentication
+
+** Create another org (existing user becomes owner)
+POST /orgs
+Content-Type: application/json
+# Returns: 201 Created with the org
+# Requires: Authentication
+
+{
+  "name": "Second Org"
+}
+
+** Preview invite
+GET /invites/TOKEN
+# Returns: 200 OK with {org_name, role}
+# Returns: 404 invite_invalid for invalid/expired/used/revoked invites
+
+** Accept invite
+POST /invites/TOKEN/accept
+# Returns: 201 Created with {membership: {org_id, role}}
+# Errors: 404 invite_invalid, 409 conflict (already a member)
 # Requires: Authentication
 
 * Internal API                                                            :verb:
@@ -44,6 +93,7 @@ POST /auth
 Content-Type: application/json
 # Returns: 200 OK with access token
 # Note: only users with is_admin may authenticate here
+# Errors: 401 unauthorized (generic)
 
 {
   "email": "admin@example.com",
@@ -57,7 +107,8 @@ POST /logout
 ** Get current internal user
 GET /users/self
 # Returns: 200 OK with internal user details
-# Requires: Internal authentication (403 ADMIN_REQUIRED otherwise)
+# Requires: Internal authentication (otherwise 401; 403 staff_only if the
+# token's user is not is_admin)
 
 ** List users
 GET /users?limit=50&offset=0
