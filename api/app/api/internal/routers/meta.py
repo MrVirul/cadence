@@ -51,6 +51,7 @@ async def auth(
     if (
         user
         and user.is_admin
+        and user.is_active
         and user.password is not None
         and verify_password(auth_request.password, user.password)
     ):
@@ -68,7 +69,7 @@ async def auth(
         return AuthResponse(access_token=access_token)
     raise APIException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        code="INVALID_CREDENTIALS",
+        code="unauthorized",
         message="Incorrect username or password",
     )
 
