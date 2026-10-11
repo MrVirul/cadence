@@ -1,59 +1,30 @@
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
 import { ApiError } from "@/lib/api-client";
 
-// The API renders every error in FastAPI's validation-error shape:
-//   { detail: [{ type, loc: ["body", <field>], msg }] }
-// so a single code path handles native 422 validation errors and our custom
-// business errors (409 conflict, 404 not found, ...) alike.
-interface ValidationErrorItem {
-  loc?: (string | number)[];
-  msg?: string;
-  type?: string;
-}
+// The API renders every error in one shape:
+//   { detail: <string>, code: <snake_case> }
+// (docs/API.md §Conventions). Native 422 validation errors fold the offending
+// fields into `detail` as "<field>: <message>" entries joined by "; "; business
+// errors (401/403/404/409/...) carry a plain message with no field prefix.
 interface ApiErrorBody {
-  detail?: ValidationErrorItem[];
+  detail?: unknown;
+  code?: string;
 }
 
-// `loc` tags where in the request the error sits; the field name follows it.
-const LOCATION_TAGS = new Set(["body", "query", "path", "header", "cookie"]);
-
-// Derive the offending field from a `loc` array, e.g. ["body", "email"] ->
-// "email". Returns null for form-level errors whose loc carries no field
-// (e.g. ["body"] on a 401).
-function fieldFromLoc(loc: ValidationErrorItem["loc"]): string | null {
-  if (!loc) {
-    return null;
-  }
-  for (let i = loc.length - 1; i >= 0; i--) {
-    const part = loc[i];
-    if (typeof part === "string" && !LOCATION_TAGS.has(part)) {
-      return part;
-    }
-  }
-  return null;
-}
-
-function getDetail(error: unknown): ValidationErrorItem[] | undefined {
+function getBody(error: unknown): ApiErrorBody | undefined {
   if (error instanceof ApiError) {
-    const detail = (error.data as ApiErrorBody | undefined)?.detail;
-    if (Array.isArray(detail) && detail.length > 0) {
-      return detail;
-    }
+    return error.data as ApiErrorBody | undefined;
   }
   return undefined;
 }
 
-// Pull a human-readable message out of an unknown thrown value: the API's first
-// structured error message when present, otherwise a caller-supplied fallback.
-// Network failures arrive as the native fetch TypeError (no response body).
+// Pull a human-readable message out of an unknown thrown value: the API's
+// `detail` string when present, otherwise a caller-supplied fallback. Network
+// failures arrive as the native fetch TypeError (no response body).
 export function getApiErrorMessage(error: unknown, fallback: string): string {
-  const detail = getDetail(error);
-  if (detail) {
-    const message = detail[0]?.msg;
-    if (typeof message === "string" && message.length > 0) {
-      return message;
-    }
-    return fallback;
+  const detail = getBody(error)?.detail;
+  if (typeof detail === "string" && detail.length > 0) {
+    return detail;
   }
   if (error instanceof TypeError) {
     return "Network error. Please check your connection and try again.";
@@ -61,35 +32,34 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-// Apply an API error to a react-hook-form: each error whose field is one of the
-// form's `fields` is attached inline (shown next to that input); anything left
-// over — errors with no field, or for fields the form doesn't render — is
-// returned as a single form-level message the caller can surface (banner,
-// toast, ...). Returns null when every error was mapped to a field.
+// Apply an API error to a react-hook-form: a 422 `detail` may fold several
+// "<field>: <message>" entries; those whose field the form renders attach
+// inline (shown next to that input). Anything else — errors with no field, or
+// for fields the form doesn't render — is returned as a single form-level
+// message the caller can surface. Returns null when every error was mapped.
 export function applyApiErrorToForm<T extends FieldValues>(
   error: unknown,
   setError: UseFormSetError<T>,
   options: { fields: readonly Path<T>[]; fallback: string }
 ): string | null {
-  const detail = getDetail(error);
-  if (!detail) {
-    // No structured body: network error or an unexpected shape.
+  const detail = getBody(error)?.detail;
+  if (typeof detail !== "string" || detail.length === 0) {
     return getApiErrorMessage(error, options.fallback);
   }
 
   const known = new Set<string>(options.fields as readonly string[]);
-  let formError: string | null = null;
-
-  for (const item of detail) {
-    const message = item.msg ?? options.fallback;
-    const field = fieldFromLoc(item.loc);
-    if (field && known.has(field)) {
-      setError(field as Path<T>, { type: "server", message });
-    } else if (!formError) {
-      // First error we can't attach to a field becomes the form-level message.
-      formError = message;
+  for (const part of detail.split("; ")) {
+    const colon = part.indexOf(": ");
+    if (colon > 0) {
+      const field = part.slice(0, colon);
+      const message = part.slice(colon + 2);
+      if (known.has(field)) {
+        setError(field as Path<T>, { type: "server", message });
+        continue;
+      }
+      return message;
     }
+    return part;
   }
-
-  return formError;
+  return null;
 }

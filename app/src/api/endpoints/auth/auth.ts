@@ -5,19 +5,30 @@
  * App api endpoints
  * OpenAPI spec version: 0.1.0
  */
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
 } from "@tanstack/react-query";
 
 import type {
   AuthRequest,
   AuthResponse,
   HTTPValidationError,
+  MeResponse,
   MessageResponse,
+  SignupRequest,
+  SignupResponse,
 } from "../../model";
 
 import { customInstance } from "../../../lib/api-client";
@@ -25,43 +36,61 @@ import type { ErrorType, BodyType } from "../../../lib/api-client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export const getAuthUrl = () => {
-  return `/auth`;
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === "queryKey") continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
+
+export const getSignupUrl = () => {
+  return `/auth/signup`;
 };
 
 /**
- * @summary Auth
+ * @summary Signup
  */
-export const auth = async (
-  authRequest: AuthRequest,
+export const signup = async (
+  signupRequest: SignupRequest,
   options?: Parameters<typeof customInstance>[1]
-): Promise<AuthResponse> => {
-  return customInstance<AuthResponse>(getAuthUrl(), {
+): Promise<SignupResponse> => {
+  return customInstance<SignupResponse>(getSignupUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(authRequest),
+    body: JSON.stringify(signupRequest),
   });
 };
 
-export const getAuthMutationOptions = <
+export const getSignupMutationOptions = <
   TError = ErrorType<HTTPValidationError>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof auth>>,
+    Awaited<ReturnType<typeof signup>>,
     TError,
-    { data: BodyType<AuthRequest> },
+    { data: BodyType<SignupRequest> },
     TContext
   >;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof auth>>,
+  Awaited<ReturnType<typeof signup>>,
   TError,
-  { data: BodyType<AuthRequest> },
+  { data: BodyType<SignupRequest> },
   TContext
 > => {
-  const mutationKey = ["auth"];
+  const mutationKey = ["signup"];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -71,31 +100,121 @@ export const getAuthMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof auth>>,
-    { data: BodyType<AuthRequest> }
+    Awaited<ReturnType<typeof signup>>,
+    { data: BodyType<SignupRequest> }
   > = (props) => {
     const { data } = props ?? {};
 
-    return auth(data, requestOptions);
+    return signup(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type AuthMutationResult = NonNullable<Awaited<ReturnType<typeof auth>>>;
-export type AuthMutationBody = BodyType<AuthRequest>;
-export type AuthMutationError = ErrorType<HTTPValidationError>;
+export type SignupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof signup>>
+>;
+export type SignupMutationBody = BodyType<SignupRequest>;
+export type SignupMutationError = ErrorType<HTTPValidationError>;
 
 /**
- * @summary Auth
+ * @summary Signup
  */
-export const useAuth = <
+export const useSignup = <
   TError = ErrorType<HTTPValidationError>,
   TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof auth>>,
+      Awaited<ReturnType<typeof signup>>,
+      TError,
+      { data: BodyType<SignupRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof signup>>,
+  TError,
+  { data: BodyType<SignupRequest> },
+  TContext
+> => {
+  return useMutation(getSignupMutationOptions(options), queryClient);
+};
+export const getLoginUrl = () => {
+  return `/auth/login`;
+};
+
+/**
+ * @summary Login
+ */
+export const login = async (
+  authRequest: AuthRequest,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<AuthResponse> => {
+  return customInstance<AuthResponse>(getLoginUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(authRequest),
+  });
+};
+
+export const getLoginMutationOptions = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: BodyType<AuthRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: BodyType<AuthRequest> },
+  TContext
+> => {
+  const mutationKey = ["login"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof login>>,
+    { data: BodyType<AuthRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return login(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof login>>
+>;
+export type LoginMutationBody = BodyType<AuthRequest>;
+export type LoginMutationError = ErrorType<HTTPValidationError>;
+
+/**
+ * @summary Login
+ */
+export const useLogin = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof login>>,
       TError,
       { data: BodyType<AuthRequest> },
       TContext
@@ -104,15 +223,15 @@ export const useAuth = <
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof auth>>,
+  Awaited<ReturnType<typeof login>>,
   TError,
   { data: BodyType<AuthRequest> },
   TContext
 > => {
-  return useMutation(getAuthMutationOptions(options), queryClient);
+  return useMutation(getLoginMutationOptions(options), queryClient);
 };
 export const getLogoutUrl = () => {
-  return `/logout`;
+  return `/auth/logout`;
 };
 
 /**
@@ -191,3 +310,134 @@ export const useLogout = <TError = ErrorType<unknown>, TContext = unknown>(
 > => {
   return useMutation(getLogoutMutationOptions(options), queryClient);
 };
+export const getMeUrl = () => {
+  return `/me`;
+};
+
+/**
+ * @summary Me
+ */
+export const me = async (
+  options?: Parameters<typeof customInstance>[1]
+): Promise<MeResponse> => {
+  return customInstance<MeResponse>(getMeUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getMeQueryKey = () => {
+  return [`/me`] as const;
+};
+
+export const getMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof me>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getMeQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof me>>> = ({ signal }) =>
+    me({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof me>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MeQueryResult = NonNullable<Awaited<ReturnType<typeof me>>>;
+export type MeQueryError = ErrorType<unknown>;
+
+export function useMe<
+  TData = Awaited<ReturnType<typeof me>>,
+  TError = ErrorType<unknown>,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof me>>,
+          TError,
+          Awaited<ReturnType<typeof me>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMe<
+  TData = Awaited<ReturnType<typeof me>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof me>>,
+          TError,
+          Awaited<ReturnType<typeof me>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMe<
+  TData = Awaited<ReturnType<typeof me>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Me
+ */
+
+export function useMe<
+  TData = Awaited<ReturnType<typeof me>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMeQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

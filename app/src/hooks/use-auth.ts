@@ -1,28 +1,30 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useGetCurrentUser } from "@/api/endpoints/users/users";
+import { useMe } from "@/api/endpoints/auth/auth";
 import { PUBLIC_ROUTES } from "@/lib/routes";
 
-// Resolves the current session from GET /users/me (authenticated via the
-// httponly access_token cookie) and redirects to /login when a protected
-// route is hit without a valid session.
+// Resolves the current session from GET /me (authenticated via the httponly
+// access_token cookie) and redirects to /login when a protected route is hit
+// without a valid session.
 export function useAuth() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (l) => l.pathname });
   const [isInitialMount, setIsInitialMount] = useState(true);
 
   const {
-    data: user,
+    data: me,
     isLoading: queryLoading,
     error,
     refetch,
-  } = useGetCurrentUser({
+  } = useMe({
     query: {
       retry: false,
       staleTime: 0,
       gcTime: 0,
     },
   });
+
+  const user = me?.user;
 
   useEffect(() => {
     if (!queryLoading) {

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
-import { auth } from "@/api/endpoints/auth/auth";
+import { login } from "@/api/endpoints/auth/auth";
 import { ApiError } from "@/lib/api-client";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ function Login() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginFormData) => auth(data),
+    mutationFn: (data: LoginFormData) => login(data),
     onSuccess: () => {
       setLoginError("");
       // Clear cached data so no prior session leaks into the new one.

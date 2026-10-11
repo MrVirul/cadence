@@ -8,14 +8,59 @@
 import * as zod from "zod";
 
 /**
- * @summary Auth
+ * @summary Signup
  */
-export const AuthBody = zod.object({
+export const signupBodyPasswordMin = 10;
+
+export const signupBodyNameOneMax = 200;
+
+export const signupBodyOrgNameOneMax = 200;
+
+export const signupBodyInviteTokenOneMax = 64;
+
+export const SignupBody = zod.object({
+  email: zod.string().email(),
+  password: zod.string().min(signupBodyPasswordMin),
+  name: zod
+    .union([zod.string().max(signupBodyNameOneMax), zod.null()])
+    .optional(),
+  org_name: zod
+    .union([zod.string().min(1).max(signupBodyOrgNameOneMax), zod.null()])
+    .optional(),
+  invite_token: zod
+    .union([zod.string().min(1).max(signupBodyInviteTokenOneMax), zod.null()])
+    .optional(),
+});
+
+export const SignupResponse = zod.object({
+  access_token: zod.string(),
+  user: zod.object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    email: zod.string(),
+  }),
+  membership: zod.object({
+    org_id: zod.string(),
+    org_name: zod.string(),
+    role: zod.enum(["owner", "admin", "member"]),
+  }),
+});
+
+/**
+ * @summary Login
+ */
+export const LoginBody = zod.object({
   email: zod.string().email(),
   password: zod.string(),
 });
 
-export const AuthResponse = zod.object({
+export const LoginResponse = zod.object({
   access_token: zod.string(),
 });
 
@@ -24,4 +69,32 @@ export const AuthResponse = zod.object({
  */
 export const LogoutResponse = zod.object({
   message: zod.string(),
+});
+
+/**
+ * @summary Me
+ */
+export const MeResponse = zod.object({
+  user: zod.object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    email: zod.string(),
+  }),
+  memberships: zod.array(
+    zod.object({
+      org: zod.object({
+        id: zod.string(),
+        name: zod.string(),
+        slug: zod.string(),
+        created_at: zod.string().datetime({ offset: true }),
+      }),
+      role: zod.enum(["owner", "admin", "member"]),
+    })
+  ),
 });
