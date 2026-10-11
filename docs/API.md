@@ -55,6 +55,22 @@ template's page envelope:
   `membership_id`, `role`, `status`, `is_admin`, `is_active`, `shipped`,
   `decided_by_*`, `plan.status`. Supplying them → `422 validation_error`.
 
+### Access semantics — 404 vs 403
+
+One global rule, applied to every endpoint and rule below:
+
+- **`404 not_found`** when the caller has **no read access** to the resource: a
+  non-member of the org, a member whose visibility does not include it (a
+  teammate's plan, or a team they are not in), a lead looking at a team they do
+  not lead, or any cross-org id. The body is identical to a genuinely missing
+  row, so nothing is disclosed.
+- **`403 forbidden`** when the caller **can read** the resource but is **not
+  allowed to act** on it (e.g. a `member` calling an admin-only action, or a
+  reader attempting a state transition their role does not permit).
+
+In short: a failure that would reveal a resource the caller cannot see is `404`;
+a failure on a resource the caller can already see is `403`.
+
 ---
 
 ## `/app` endpoints
@@ -111,7 +127,7 @@ demoted or removed (`409 last_owner`).
 | POST | `/app/orgs/{org_id}/teams` | admin, owner | `{name, lead_membership_id?}` | `team` | 201 | 403 `forbidden`, 409 `conflict` (name), 422 |
 | GET | `/app/orgs/{org_id}/teams/{team_id}` | team member, admin, owner | — | `team` + `members[]` | 200 | 404 `not_found` (non-member) |
 | PATCH | `/app/orgs/{org_id}/teams/{team_id}` | admin, owner | `{name?}` | `team` | 200 | 403 `forbidden`, 409 `conflict`, 404 `not_found` |
-| DELETE | `/app/orgs/{org_id}/teams/{team_id}` | admin, owner | — | — | 204 | 403 `forbidden`, 404 `not_found` |
+| DELETE | `/app/orgs/{org_id}/teams/{team_id}` | admin, owner | — | — | 204 | 403 `forbidden`, 404 `not_found`, 409 `conflict` (team still has plans) |
 | PUT | `/app/orgs/{org_id}/teams/{team_id}/members` | admin, owner | `{membership_ids:[...]}` | `team` + `members[]` | 200 | 403 `forbidden`, 404 `not_found` (any id outside org/team), 422 |
 | PUT | `/app/orgs/{org_id}/teams/{team_id}/lead` | admin, owner | `{membership_id}` | `team` | 200 | 403 `forbidden`, 404 `not_found`, 422 `validation_error` (lead not a team member) |
 
@@ -122,19 +138,25 @@ demoted or removed (`409 last_owner`).
 | GET | `/app/orgs/{org_id}/plans` | member (own only); lead (own team); admin/owner (all) | `?week=YYYY-MM-DD&mine=true&limit&offset` | page of `plan` | 200 | 404 `not_found`, 422 `validation_error` (bad date) |
 | POST | `/app/orgs/{org_id}/plans` | member (creates **own** draft) | `{week_start, team_id, tasks:[{kind, title, why?, position?}]}` | `plan` | 201 | 403 `forbidden` (team not author's), 409 `conflict` (plan already exists for week), 422 `validation_error` (not Monday, past week, >4 weeks ahead, limits) |
 | GET | `/app/orgs/{org_id}/plans/{plan_id}` | author; lead of `plan.team_id`; admin/owner | — | `plan` + `tasks[]` + `events[]` | 200 | 404 `not_found` |
-| PUT | `/app/orgs/{org_id}/plans/{plan_id}` | author, `draft` only | `{tasks:[...], team_id?}` | `plan` | 200 | 403 `forbidden` (not author), 409 `invalid_transition` (not draft), 422 |
-| PATCH | `/app/orgs/{org_id}/tasks/{task_id}` | author, plan `draft` or `approved` | `{status}` | `task` | 200 | 403 `forbidden`, 409 `invalid_transition`, 404 `not_found` |
-| POST | `/app/orgs/{org_id}/plans/{plan_id}/submit` | author | — | `plan` | 200 | 403 `forbidden`, 409 `invalid_transition`, 422 `validation_error` (no team / missing main / main without why) |
-| POST | `/app/orgs/{org_id}/plans/{plan_id}/withdraw` | author | — | `plan` | 200 | 403 `forbidden`, 409 `invalid_transition` |
-| POST | `/app/orgs/{org_id}/plans/{plan_id}/approve` | lead of team, admin, owner — **never the author** | — | `plan` | 200 | 403 `forbidden`, 409 `invalid_transition` |
-| POST | `/app/orgs/{org_id}/plans/{plan_id}/send-back` | lead of team, admin, owner — **never the author** | `{comment}` (non-empty) | `plan` | 200 | 403 `forbidden`, 404 `not_found`, 409 `invalid_transition`, 422 `validation_error` |
-| POST | `/app/orgs/{org_id}/plans/{plan_id}/close` | author, from `approved` | `{shipped: bool}` | `plan` | 200 | 403 `forbidden`, 409 `invalid_transition`, 422 |
-| GET | `/app/orgs/{org_id}/teams/{team_id}/week` | lead of team, admin, owner | `?week=YYYY-MM-DD` | `{week_start, rows:[{membership_id, user, status, tasks_done, tasks_total, shipped}]}` | 200 | 403 `forbidden`, 404 `not_found` |
-| GET | `/app/orgs/{org_id}/teams/{team_id}/history` | lead of team, admin, owner | `?limit&offset` | `{items:[{week_start, shipped_count, total}], shipped_rate}` | 200 | 403 `forbidden`, 404 `not_found` |
+| PUT | `/app/orgs/{org_id}/plans/{plan_id}` | author, `draft` only | `{tasks:[{id?, kind, title, why?, position?}], team_id?}` | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read, not the author), 409 `invalid_transition` (not draft), 422 |
+| PATCH | `/app/orgs/{org_id}/tasks/{task_id}` | author, plan `draft` or `approved` | `{status}` | `task` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read, not the author), 409 `invalid_transition` |
+| POST | `/app/orgs/{org_id}/plans/{plan_id}/submit` | author | — | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read, not the author), 409 `invalid_transition`, 422 `validation_error` (no team / missing main / main without why) |
+| POST | `/app/orgs/{org_id}/plans/{plan_id}/withdraw` | author | — | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read, not the author), 409 `invalid_transition` |
+| POST | `/app/orgs/{org_id}/plans/{plan_id}/approve` | lead of team, admin, owner; the author only when **no other eligible approver exists** (blocked when one does) | — | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read but not eligible, incl. self-approval when another approver exists), 409 `invalid_transition` |
+| POST | `/app/orgs/{org_id}/plans/{plan_id}/send-back` | same as `approve` | `{comment}` (non-empty) | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read but not eligible), 409 `invalid_transition`, 422 `validation_error` |
+| POST | `/app/orgs/{org_id}/plans/{plan_id}/close` | author, from `approved` | `{shipped: bool}` | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read, not the author), 409 `invalid_transition`, 422 |
+| GET | `/app/orgs/{org_id}/teams/{team_id}/week` | lead of team, admin, owner | `?week=YYYY-MM-DD` | `{week_start, rows:[{membership_id, plan_id (nullable), user, status, tasks_done, tasks_total, shipped}]}` | 200 | 404 `not_found` (no read access) |
+| GET | `/app/orgs/{org_id}/teams/{team_id}/history` | lead of team, admin, owner | `?limit&offset` | `{items:[{week_start, shipped_count, total}], shipped_rate}` | 200 | 404 `not_found` (no read access) |
 
 `plan` response shape: `{id, week_start, status, team_id, author:{membership_id,
 user}, submitted_at, decided_at, decided_by, decision_comment, shipped,
 closed_at, created_at, updated_at}`.
+
+**`PUT /plans/{plan_id}` task diffing.** Existing tasks are matched by `id` and
+updated in place, so their ids stay stable across edits. New tasks are sent
+without an `id` (the server assigns one). Tasks that exist on the plan but are
+absent from the body are deleted. This keeps client-side state and task
+references stable.
 
 ### AI (org-scoped, stateless)
 
@@ -153,8 +175,10 @@ its own short session **before** the HTTP error is raised.
 ## `/internal` endpoints (staff only)
 
 Every route requires an internal-audience token **and** `is_admin` (platform
-staff). A customer/app token, or a non-staff user, → `401 unauthorized`; a
-staff token on `/app/orgs/...` is rejected because staff are not org members.
+staff). A **wrong-audience** token (e.g. a customer `/app` token) → `401
+unauthorized`; a **right-audience** token whose user is **not** `is_admin` →
+`403 staff_only`. A staff token on `/app/orgs/...` is rejected because staff are
+not org members (`404 not_found`).
 
 | Method | Path | Who | Request | Response | Status | Error codes |
 |---|---|---|---|---|---|---|
@@ -184,7 +208,7 @@ across existing and new routes must contain **no plan, task or AI text**.
 | `invalid_token` | 401 | Token signature/audience/format invalid. |
 | `credentials_required` | 401 | No cookie or `Access-Token` header supplied. |
 | `forbidden` | 403 | Authenticated but not permitted (role/lead/ownership). |
-| `staff_only` | 403 | `/internal` route called by a non-staff or wrong-audience token. |
+| `staff_only` | 403 | `/internal` route called with a valid internal-audience token by a user who is not `is_admin`. (A wrong-audience token gets `401 unauthorized`.) |
 | `org_suspended` | 403 | Org is suspended; contact support. |
 | `not_found` | 404 | Resource does not exist **in this org** (also used for cross-org ids). |
 | `invite_invalid` | 404 | Invite invalid, expired, used or revoked. |
@@ -209,9 +233,10 @@ missing row, so responses never reveal that another org's resource exists.
 
 - **`POST /app/auth/signup` — exactly one of `org_name` | `invite_token`.**
   A schema-level model validator enforces "exactly one" (both or neither → `422`).
-  `is_admin` must be rejected, not silently accepted. Signing up with an
-  `invite_token` must only ever create a `member`/`admin` membership — never
-  `owner` — and must consume the invite atomically.
+  `is_admin` must be rejected, not silently accepted. Sign-up sets `is_active=true`
+  so the new account can log in immediately. Signing up with an `invite_token`
+  must only ever create a `member`/`admin` membership — never `owner` — and must
+  consume the invite atomically.
 - **`POST /app/invites/{token}/accept`.** Double-accept is a race: use a
   conditional `UPDATE invites SET accepted_by_user_id=..., accepted_at=now()
   WHERE token=... AND accepted_at IS NULL AND revoked_at IS NULL AND
@@ -261,7 +286,7 @@ One sentence each; each maps to a pytest assertion.
 
 ### Cross-org ids — in the body
 
-14. Creating a plan in Org B with `team_id` belonging to Org A gets `404` (or `422`) and writes no plan.
+14. Creating a plan in Org B with `team_id` belonging to Org A gets `404` and writes no plan.
 15. `PUT /app/orgs/{B}/teams/{team_id_of_B}/members` with a `membership_id` from Org A gets `404` and changes nothing.
 16. `PUT /app/orgs/{B}/teams/{team_id_of_B}/lead` with a `membership_id` from Org A gets `404`.
 17. A request body containing `org_id`, `membership_id`, `role`, `status`, `is_admin`, `is_active`, `shipped` or `decided_by_membership_id` is rejected with `422` (extra fields forbidden).
@@ -275,23 +300,23 @@ One sentence each; each maps to a pytest assertion.
 22. A team lead calling `GET /app/orgs/{org}/teams/{own_team}/week` gets `200`; the same lead on another team's week gets `404`.
 23. A team lead can approve a plan in their own team (`200`) but a plan in another team returns `404`.
 24. An `admin` can read every plan in the org; an `owner` likewise.
-25. An `admin` changing an `owner`'s role or removing an `owner` gets `403`/`409` and the owner is unchanged.
+25. An `admin` changing an `owner`'s role or removing an `owner` gets `403` and the owner is unchanged.
 26. An `admin` can change a `member`↔`admin` role.
 27. Demoting or removing an org's **last owner** gets `409` with `code="last_owner"` and the membership is unchanged.
-28. An `owner` (or `admin`) is not allowed to use `/internal/*` (`403`).
+28. An org `owner`/`admin` who is not platform staff cannot use `/internal/*`: with an `/app` token → `401 unauthorized` (wrong audience); even with a valid internal-audience token → `403 staff_only`.
 
-### Nobody approves their own plan
+### Self-approval
 
-29. A team lead who authored a `submitted` plan gets `403`/`409` calling `approve` or `send-back` on it.
-30. An org owner who authored their own `submitted` plan also cannot approve it; another owner/admin approves it with `200`.
-31. An org admin (non-author) can approve a lead's plan with `200`, and a `plan_events` row with `actor_membership_id` = the approver and `action="approved"` is written.
+29. A team lead who authored a `submitted` plan is blocked from `approve`/`send-back` (`403 forbidden`) when another eligible approver exists (another lead of that team, or another org owner/admin).
+30. When **no** other eligible approver exists, the author may `approve`/`send-back` their own plan (`200`), and the written `plan_events` row has `self_approved=true`.
+31. When a non-author eligible approver acts, the request returns `200` and the written `plan_events` row has `self_approved=false` and `actor_membership_id` = the approver.
 
 ### Customer token vs staff token
 
-32. A valid `/app` (customer) token used on `GET /internal/orgs` gets `401`.
-33. A valid `/internal` (staff) token used on `GET /app/orgs/{org_id}` gets `401`/`404` (staff are not org members).
-34. A non-staff user holding an internal-audience token gets `403` (`staff_only`).
-35. A staff user with an app-audience token is still not an org member, so `/app/orgs/{org_id}` returns `404`.
+32. A valid `/app` (customer) token used on `GET /internal/orgs` gets `401 unauthorized` (wrong audience).
+33. A valid `/internal` (staff) token used on `GET /app/orgs/{org_id}` gets `404` (staff are not org members, so they have no read access).
+34. A right-audience `/internal` token whose user is not `is_admin` gets `403` with `code="staff_only"`.
+35. A staff user is not an org member, so `/app/orgs/{org_id}` returns `404` regardless of the token audience.
 
 ### Race cases
 
@@ -313,6 +338,10 @@ One sentence each; each maps to a pytest assertion.
 45. The serialized JSON of every `/internal` response contains no plan text, task title/why, or AI prompt/response text.
 46. `/internal/ai-usage` counts match the `ai_calls` rows for the org (calls, failures, rate_limited, tokens) computed with grouped aggregates.
 
+### Sign-up
+
+47. A successful `POST /app/auth/signup` sets the new user `is_active=true`, and the account can log in immediately afterwards.
+
 ---
 
 ## Open questions / assumptions
@@ -323,7 +352,7 @@ One sentence each; each maps to a pytest assertion.
 4. **Timestamps the brief omits.** The brief lists no `created_at` for `invites`, `team_members`, `tasks`, or `updated_at` for most tables. **Assumption:** add `created_at` (and `updated_at` on `plans`/`tasks`) following the template's `TimestampMixin`, purely additive.
 5. **`main.why` enforcement.** `why` is nullable (draft can be saved incomplete) but required for `main` at submit. **Assumption:** enforce in the service at create/submit and return `422`; no hard DB constraint so an incomplete draft is saveable.
 6. **Invite expiry.** Default `+7 days`; `expires_in_days` is an optional admin override. Assumed allowed range 1–30 days.
-7. **Plans with no possible approver.** A lead's own plan must be approved by an owner/admin. If the author is the org's only owner/admin, no one can approve it. **Assumption:** return `409` (no eligible approver) rather than allowing self-approval; the seed ensures every org has ≥ 2 privileged members.
+7. **Plans with no possible approver.** A lead's own plan is normally approved by another lead/owner/admin. If no other eligible approver exists, the author may approve their own plan. **Assumption:** allow self-approval and record `plan_events.self_approved=true`; when another eligible approver exists, self-approval is blocked (`403`). (Replaces the earlier "409 no approver" behaviour.)
 8. **`team_id` immutability.** **Assumption:** `team_id` may be changed via `PUT /plans/{id}` while in `draft`, and is frozen once `submitted`+.
 9. **`week_start` timezone.** **Assumption:** the week boundary is computed in the API's configured timezone (UTC), and Monday validation is date-only (`EXTRACT(ISODOW)=1`).
 10. **`plan_events.actor_membership_id` nullability.** **Assumption:** nullable with `ON DELETE SET NULL` so audit history survives a member being removed; new events always set it.

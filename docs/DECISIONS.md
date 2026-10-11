@@ -30,7 +30,7 @@ Launchbase folder-level `AGENTS.md` disagree, the **root brief wins**.
 - 2026-10-11 — Add `created_at` (and `updated_at` on `plans`/`tasks`) where the brief is silent, following the template's `TimestampMixin` — additive, matches the users resource.
 - 2026-10-11 — `main.why` required is enforced in the service at create/submit (422), **not** a DB CHECK — a draft must be saveable while incomplete.
 - 2026-10-11 — Invite `expires_in_days` optional override, default +7 days, assumed allowed range 1–30.
-- 2026-10-11 — A lead's/owner's own plan that has no other eligible approver returns 409 rather than allowing self-approval; seed guarantees each org has ≥2 privileged members — preserves "nobody approves their own plan".
+- 2026-10-11 — Self-approval is **blocked when another eligible approver exists** (another lead of that team, or another org owner/admin); if **no** other eligible approver exists the author may approve/send back their own plan and `plan_events.self_approved=true` is recorded — avoids dead-ending a team with a single privileged member; replaces the earlier "409 no approver" plan (do not keep both).
 - 2026-10-11 — `plan.team_id` is mutable via `PUT` while `draft`, frozen once `submitted`+.
 - 2026-10-11 — Week boundary computed in UTC; Monday check is date-only (`EXTRACT(ISODOW)=1`), enforced by DB CHECK + schema 422.
 - 2026-10-11 — `plan_events.actor_membership_id` nullable with `ON DELETE SET NULL`; new events always set it — audit history survives member removal.
@@ -40,3 +40,16 @@ Launchbase folder-level `AGENTS.md` disagree, the **root brief wins**.
 - 2026-10-11 — Keep `api/requests.org` in sync with every API change, committed alongside the code — `api/AGENTS.md` requires it (brief is silent).
 - 2026-10-11 — Use only `is_platform_staff` in new code; org `owner`/`admin` roles are never conflated with the `is_admin` platform-staff column — brief §4.
 - 2026-10-11 — Team/lead same-org and "lead must be a team member" are enforced in the service layer (not composite FKs), per brief §4 — simpler and explicitly what the brief asks to test.
+
+## Phase 1 — doc fixes (self-approval, 404/403, team-week, staff access)
+
+- 2026-10-11 — Added `plan_events.self_approved` (`boolean`, not null, default `false`), set `true` only when the author approves/sends back their own plan because no other eligible approver exists — makes the self-approval auditable.
+- 2026-10-11 — Each row of `GET /app/orgs/{org_id}/teams/{team_id}/week` now includes a nullable `plan_id` (null when the member has no plan that week) — the team-week table needs to link a row to its plan.
+- 2026-10-11 — `DELETE /app/orgs/{org_id}/teams/{team_id}` returns `409 conflict` when the team still has plans (`plans.team_id` is `ON DELETE RESTRICT`) — prevents orphaning plans; the caller reassigns or deletes them first.
+- 2026-10-11 — Global error-status rule: `404 not_found` when the caller has **no read access** to the resource (non-member, teammate's plan, team they are not in, other team as a non-lead, cross-org id), `403 forbidden` when they **can read** it but are **not allowed to act** — applied to PUT plan, task tick, team week/history, approve, send-back and close so status codes are consistent and non-disclosing.
+- 2026-10-11 — `/internal` access split: a **wrong-audience** token → `401 unauthorized`; a **right-audience** internal token whose user is not `is_admin` → `403 staff_only`; a staff token on `/app/orgs/...` → `404` (staff are not org members) — fixes the intro, the error table, rule 28 and rules 32–35.
+- 2026-10-11 — Removed ambiguous "X/Y" status codes from the tenancy rules: rule 14 (cross-org `team_id`) → `404`, rule 25 (admin touches owner) → `403`, rule 33 (staff token on `/app/orgs/...`) → `404`.
+- 2026-10-11 — `PUT /app/orgs/{org_id}/plans/{plan_id}` matches tasks by `id` and updates them in place (ids stay stable); new tasks omit `id`; tasks present on the plan but absent from the body are deleted — keeps client-side task references stable across edits.
+- 2026-10-11 — Sign-up explicitly sets `is_active=true`; a test asserts a freshly signed-up user can log in immediately — otherwise the template's `is_active=false` default would lock out new accounts.
+- 2026-10-11 — Known MVP limit: removing (or deactivating) a member also **deletes that member's plans** (the `memberships` cascade) — simplest consistent behaviour; historical team metrics for departed members are not preserved.
+- 2026-10-11 — A plan keeps its `team_id` if the author later leaves that team, and an org owner/admin can always approve it — avoids orphaned/unapprovable plans when team membership changes after submission.
