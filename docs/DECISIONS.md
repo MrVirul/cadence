@@ -21,3 +21,22 @@ Launchbase folder-level `AGENTS.md` disagree, the **root brief wins**.
 - 2026-10-11 — Members cannot see teammates' plans (least privilege), even though leads/admins can — reduces leak surface; recorded from brief §5.
 - 2026-10-11 — Staff (`/internal`) never see plan, task, or AI prompt text, only metadata and counts — deliberate privacy call; `ai_calls` stores no prompt/response text.
 - 2026-10-11 — Cross-org access returns **404**, never 403, and never a distinct message — do not reveal that another org's resource exists.
+
+## Phase 1 — data model & API design
+
+- 2026-10-11 — Adopt the brief's error shape `{"detail": str, "code": "snake_case"}` for all errors, replacing the template's `{"detail":[{type,loc,msg}]}` + UPPER_SNAKE codes — brief §6 fixes the shape; `APIException` and existing `/internal` tests updated in Phase 3.
+- 2026-10-11 — Adopt the brief's auth paths (`POST /app/auth/login`, `POST /app/auth/signup`, `GET /app/me`) and retire `GET /app/users/self`; keep `POST /app/auth/logout` — brief §6 lists the login/signup/me paths.
+- 2026-10-11 — Sign-up accepts optional `name` and splits it on the first space into the non-null `first_name`/`last_name`; absent name derives from the email local-part — the users table has no `name` column.
+- 2026-10-11 — Add `created_at` (and `updated_at` on `plans`/`tasks`) where the brief is silent, following the template's `TimestampMixin` — additive, matches the users resource.
+- 2026-10-11 — `main.why` required is enforced in the service at create/submit (422), **not** a DB CHECK — a draft must be saveable while incomplete.
+- 2026-10-11 — Invite `expires_in_days` optional override, default +7 days, assumed allowed range 1–30.
+- 2026-10-11 — A lead's/owner's own plan that has no other eligible approver returns 409 rather than allowing self-approval; seed guarantees each org has ≥2 privileged members — preserves "nobody approves their own plan".
+- 2026-10-11 — `plan.team_id` is mutable via `PUT` while `draft`, frozen once `submitted`+.
+- 2026-10-11 — Week boundary computed in UTC; Monday check is date-only (`EXTRACT(ISODOW)=1`), enforced by DB CHECK + schema 422.
+- 2026-10-11 — `plan_events.actor_membership_id` nullable with `ON DELETE SET NULL`; new events always set it — audit history survives member removal.
+- 2026-10-11 — `ai_calls.membership_id` non-null even on failure/`disabled` rows; `staff_actions.target_id` is polymorphic with no FK (append-only audit).
+- 2026-10-11 — `/internal/ai-usage` computes `p50` via Postgres `percentile_cont` and `avg` in one grouped query — no N+1.
+- 2026-10-11 — Reuse the template's list envelope `{items,total,limit,offset}` with `limit` default 50 / max 100, `offset ≥ 0`.
+- 2026-10-11 — Keep `api/requests.org` in sync with every API change, committed alongside the code — `api/AGENTS.md` requires it (brief is silent).
+- 2026-10-11 — Use only `is_platform_staff` in new code; org `owner`/`admin` roles are never conflated with the `is_admin` platform-staff column — brief §4.
+- 2026-10-11 — Team/lead same-org and "lead must be a team member" are enforced in the service layer (not composite FKs), per brief §4 — simpler and explicitly what the brief asks to test.
