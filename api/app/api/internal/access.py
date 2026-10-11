@@ -9,8 +9,8 @@ from app.security import JWT_AUDIENCE_INTERNAL
 
 http_admin_required_exception = APIException(
     status_code=status.HTTP_403_FORBIDDEN,
-    code="ADMIN_REQUIRED",
-    message="Admin privileges required",
+    code="staff_only",
+    message="Staff privileges required",
 )
 
 # Internal surface: `internal_access_token` cookie, internal-audience tokens. An app

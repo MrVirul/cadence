@@ -1,6 +1,7 @@
 import os
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
@@ -8,7 +9,12 @@ from fastapi.staticfiles import StaticFiles
 from app.api.app.router import router as app_router
 from app.api.internal.router import router as internal_router
 from app.config import settings
-from app.exceptions import APIException
+from app.exceptions import (
+    APIException,
+    api_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
 
 
 def route_operation_id(route: APIRoute) -> str:
@@ -40,17 +46,13 @@ app_api = FastAPI(
     openapi_tags=[
         {"name": "meta", "description": "Health and service metadata"},
         {"name": "auth", "description": "Authentication and session"},
-        {"name": "users", "description": "User endpoints"},
+        {"name": "orgs", "description": "Organizations"},
+        {"name": "invites", "description": "Invites"},
     ],
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,
 )
-
-
-@app_api.exception_handler(APIException)
-async def api_exception_handler(request: Request, exc: APIException):
-    return exc.to_response()
 
 
 app_api.include_router(app_router)
@@ -79,9 +81,14 @@ internal_api = FastAPI(
 )
 
 
-@internal_api.exception_handler(APIException)
-async def internal_api_exception_handler(request: Request, exc: APIException):
-    return exc.to_response()
+# Every error — custom, validation, or unexpected — uses one JSON body:
+# {"detail": <string>, "code": <snake_case>}. Registered on both sub-apps via
+# the decorator form, which registers under the hood but lets handlers keep
+# their precise exception types.
+for api in (app_api, internal_api):
+    api.exception_handler(APIException)(api_exception_handler)
+    api.exception_handler(RequestValidationError)(validation_exception_handler)
+    api.exception_handler(Exception)(unhandled_exception_handler)
 
 
 internal_api.include_router(internal_router)

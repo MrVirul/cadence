@@ -1,18 +1,19 @@
-from fastapi import HTTPException, status
+from collections.abc import Iterable, Mapping
+from typing import Any
+
+from fastapi import HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+
+from app.logging import logger
 
 
 class APIException(HTTPException):
-    """Custom exception rendered in FastAPI's validation-error shape.
+    """Error rendered as ``{"detail": str, "code": "snake_case"}``.
 
-    The body mirrors what Pydantic/FastAPI emit for a 422 so the frontend can
-    handle every error the same way — mapping each entry to a form field via
-    its `loc`:
-
-        {"detail": [{"type": <code>, "loc": ["body", <field>], "msg": <message>}]}
-
-    When an error isn't tied to a specific input field, `loc` is just ["body"]
-    and the frontend surfaces it as a form-level error.
+    One shape for every error (brief §6, ``docs/API.md``): ``detail`` is a
+    human-readable string and ``code`` is a stable snake_case token the frontend
+    can switch on. ``headers`` carries extras such as ``Retry-After`` on a 429.
     """
 
     def __init__(
@@ -20,47 +21,78 @@ class APIException(HTTPException):
         status_code: int,
         code: str,
         message: str,
-        field: str | None = None,
-    ):
+        *,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         self.code = code
         self.message = message
-        self.field = field
-        super().__init__(status_code=status_code, detail=message)
+        self.headers = headers
+        super().__init__(status_code=status_code, detail=message, headers=headers)
 
     def to_response(self) -> JSONResponse:
-        loc = ["body", self.field] if self.field else ["body"]
-        error = {
-            "type": self.code.lower(),
-            "loc": loc,
-            "msg": self.message,
-        }
-        return JSONResponse(status_code=self.status_code, content={"detail": [error]})
+        return JSONResponse(
+            status_code=self.status_code,
+            content={"detail": self.message, "code": self.code},
+            headers=self.headers,
+        )
+
+
+def format_validation_errors(errors: Iterable[Mapping[str, Any]]) -> str:
+    """Fold FastAPI's list of field errors into a single ``detail`` string.
+
+    ``loc`` is stripped of the leading ``"body"`` tag and joined with dots, so
+    ``{"loc": ["body", "is_admin"]}`` becomes ``"is_admin: Extra inputs are not
+    permitted"``. Errors without a field (model validators, malformed JSON) keep
+    just their message.
+    """
+    parts: list[str] = []
+    for error in errors:
+        location = [str(part) for part in error.get("loc", ()) if part != "body"]
+        message = str(error.get("msg", "Invalid value"))
+        parts.append(f"{'.'.join(location)}: {message}" if location else message)
+    return "; ".join(parts) or "Invalid request"
+
+
+async def api_exception_handler(_request: Request, exc: APIException) -> JSONResponse:
+    return exc.to_response()
+
+
+async def validation_exception_handler(
+    _request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={
+            "detail": format_validation_errors(exc.errors()),
+            "code": "validation_error",
+        },
+    )
+
+
+async def unhandled_exception_handler(
+    _request: Request, exc: Exception
+) -> JSONResponse:
+    # Log the traceback internally but never expose it to the caller.
+    logger.exception("Unhandled server error", exc_info=exc)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Internal server error", "code": "internal_error"},
+    )
 
 
 class ResourceNotFoundException(APIException):
     def __init__(self, message: str):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
-            code="RESOURCE_NOT_FOUND",
+            code="not_found",
             message=message,
-        )
-
-
-class ValidationException(APIException):
-    def __init__(self, message: str, field: str | None = None):
-        super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            code="VALIDATION_ERROR",
-            message=message,
-            field=field,
         )
 
 
 class ConflictException(APIException):
-    def __init__(self, message: str, field: str | None = None):
+    def __init__(self, message: str):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            code="CONFLICT",
+            code="conflict",
             message=message,
-            field=field,
         )

@@ -116,6 +116,4 @@ class UserService:
         if exclude_id is not None:
             stmt = stmt.where(User.id != exclude_id)
         if await self.session.scalar(stmt) is not None:
-            raise ConflictException(
-                f"User with email '{email}' already exists.", field="email"
-            )
+            raise ConflictException(f"User with email '{email}' already exists.")

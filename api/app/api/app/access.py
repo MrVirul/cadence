@@ -15,13 +15,13 @@ from app.security import JWT_AUDIENCE_APP
 
 http_credentials_exception = APIException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    code="INVALID_TOKEN",
+    code="invalid_token",
     message="Could not validate credentials",
 )
 
 http_credentials_required_exception = APIException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    code="CREDENTIALS_REQUIRED",
+    code="credentials_required",
     message="Credentials required from cookie or access token",
 )
 
@@ -33,7 +33,7 @@ def decode_access_token(access_token: str, audience: str) -> str:
         if len(token_parts) != 2 or token_parts[0].lower() != "bearer":
             raise APIException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                code="INVALID_TOKEN_FORMAT",
+                code="invalid_token",
                 message="Token must be in 'Bearer <token>' format",
             )
 
@@ -49,14 +49,14 @@ def decode_access_token(access_token: str, audience: str) -> str:
         if not sub:
             raise APIException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                code="INVALID_TOKEN_PAYLOAD",
+                code="invalid_token",
                 message="Token payload missing required 'sub' field",
             )
         return sub
     except jwt.PyJWTError as e:
         raise APIException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            code="INVALID_TOKEN",
+            code="invalid_token",
             message=f"JWT validation failed: {e!s}",
         )
     except APIException:
@@ -74,7 +74,7 @@ async def get_user_by_id(user_id: str, session: DBSession) -> User:
     except SQLAlchemyError:
         raise APIException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            code="DATABASE_ERROR",
+            code="database_error",
             message="Database query failed",
         )
     except ResourceNotFoundException:
@@ -86,7 +86,12 @@ async def get_current_user(session: DBSession, access_token: str, audience: str)
     if access_token:
         try:
             sub = decode_access_token(access_token, audience)
-            return await get_user_by_id(user_id=sub, session=session)
+            user = await get_user_by_id(user_id=sub, session=session)
+            # Deactivation is checked from the DB on every request, so an
+            # already-issued token stops working the moment staff deactivate.
+            if not user.is_active:
+                raise http_credentials_exception
+            return user
         except (APIException, ResourceNotFoundException):
             # Re-raise our custom exceptions
             raise
@@ -95,7 +100,7 @@ async def get_current_user(session: DBSession, access_token: str, audience: str)
             logger.exception("Unexpected error while authenticating user")
             raise APIException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                code="AUTHENTICATION_FAILED",
+                code="unauthorized",
                 message="Authentication failed due to unexpected error",
             )
 
