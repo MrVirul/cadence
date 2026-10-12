@@ -1,19 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CalendarDays } from "lucide-react";
+import { Navigate, createFileRoute } from "@tanstack/react-router";
+import { currentWeekStartUtc } from "@/lib/week";
 
 export const Route = createFileRoute("/$orgId/")({
-  component: OrgIndexStubPage,
+  component: OrgIndexRedirect,
 });
 
-function OrgIndexStubPage() {
+function OrgIndexRedirect() {
+  const { orgId } = Route.useParams();
+  const weekStart = currentWeekStartUtc();
   return (
-    <div className="rounded-xl border bg-background p-8 text-center shadow-sm">
-      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <CalendarDays className="size-5" />
-      </div>
-      <h1 className="text-lg font-semibold text-foreground">
-        My week is coming next
-      </h1>
-    </div>
+    <Navigate
+      to="/$orgId/week/$weekStart"
+      params={{ orgId, weekStart }}
+      replace
+    />
   );
 }

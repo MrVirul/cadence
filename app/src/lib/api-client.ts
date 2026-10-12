@@ -18,7 +18,8 @@ export class ApiError<TData = unknown> extends Error {
   constructor(
     public status: number,
     public statusText: string,
-    public data: TData
+    public data: TData,
+    public retryAfter?: number
   ) {
     super(`API request failed with status ${status}`);
     this.name = "ApiError";
@@ -37,6 +38,20 @@ const parseBody = async (response: Response): Promise<unknown> => {
   return contentType.includes("application/json") ? JSON.parse(text) : text;
 };
 
+const parseRetryAfter = (response: Response): number | undefined => {
+  if (response.status !== 429) {
+    return undefined;
+  }
+  const raw = response.headers.get("retry-after");
+  if (raw) {
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return 30;
+};
+
 // Orval `fetch` httpClient calls this with the request path and a RequestInit
 // (method, headers, body, signal). We prepend the base URL, attach credentials,
 // parse the body, and throw `ApiError` on non-2xx so TanStack Query treats it
@@ -53,7 +68,12 @@ export const customInstance = async <T>(
   const data = await parseBody(response);
 
   if (!response.ok) {
-    throw new ApiError(response.status, response.statusText, data);
+    throw new ApiError(
+      response.status,
+      response.statusText,
+      data,
+      parseRetryAfter(response)
+    );
   }
 
   return data as T;

@@ -2,14 +2,17 @@ import {
   Link,
   Outlet,
   createFileRoute,
+  useLocation,
   useRouter,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
+  CalendarDays,
   Check,
   ChevronsUpDown,
+  History,
   LogOut,
   Menu,
   Plus,
@@ -21,6 +24,8 @@ import { NoAccess } from "@/components/guards/NoAccess";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { currentWeekStartUtc } from "@/lib/week";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -212,6 +217,13 @@ function SidebarContent({
       user.email.charAt(0).toUpperCase()
     : "";
 
+  const location = useLocation();
+  const thisMonday = currentWeekStartUtc();
+  const isMyWeekActive =
+    location.pathname === `/${orgId}` ||
+    location.pathname.startsWith(`/${orgId}/week/`);
+  const isHistoryActive = location.pathname.startsWith(`/${orgId}/history`);
+
   const hasMultipleOrgs = memberships.length > 1;
 
   return (
@@ -295,8 +307,37 @@ function SidebarContent({
         )}
       </div>
 
-      {/* Main nav area — no dead buttons before screens 2 and 3 are built */}
-      <div className="flex-1" />
+      {/* Main nav area */}
+      <nav aria-label="Main navigation" className="flex-1 space-y-1 p-3">
+        <Link
+          to="/$orgId/week/$weekStart"
+          params={{ orgId, weekStart: thisMonday }}
+          onClick={() => onActionComplete?.()}
+          className={cn(
+            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            isMyWeekActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <CalendarDays className="size-4 shrink-0" />
+          <span>My week</span>
+        </Link>
+        <Link
+          to="/$orgId/history"
+          params={{ orgId }}
+          onClick={() => onActionComplete?.()}
+          className={cn(
+            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            isHistoryActive
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <History className="size-4 shrink-0" />
+          <span>History</span>
+        </Link>
+      </nav>
 
       {/* User profile and Log out */}
       <div className="border-t p-3">
