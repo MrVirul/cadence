@@ -96,3 +96,30 @@ class ConflictException(APIException):
             code="conflict",
             message=message,
         )
+
+
+class OrgSuspendedException(APIException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            code="org_suspended",
+            message="This organization is suspended. Contact support to restore access.",
+        )
+
+
+class RoleForbiddenException(APIException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            code="forbidden",
+            message="You do not have permission to perform this action",
+        )
+
+
+class LastOwnerException(APIException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            code="last_owner",
+            message="An organization must always have at least one owner",
+        )

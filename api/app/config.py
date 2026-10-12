@@ -19,6 +19,10 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: str = "http://localhost:3000"
 
+    # Public URL of the customer app; used to build invite links returned by the
+    # API (e.g. `{APP_URL}/invite/{token}`).
+    APP_URL: str = "http://localhost:3001"
+
     # JWT Token settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     JWT_ALGORITHM: str = "HS256"
