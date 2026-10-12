@@ -5,7 +5,11 @@ import { getLastUsedOrgId } from "@/lib/routes";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 
-export function NoAccess() {
+interface NoAccessProps {
+  variant?: "not_found" | "forbidden";
+}
+
+export function NoAccess({ variant = "not_found" }: NoAccessProps) {
   const router = useRouter();
   const { memberships } = useUser();
 
@@ -22,7 +26,7 @@ export function NoAccess() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4 sm:p-6">
+    <div className="flex min-h-[70vh] flex-col items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-sm text-center">
         <div className="mb-8 flex justify-center">
           <Logo />
@@ -32,11 +36,14 @@ export function NoAccess() {
             <ShieldAlert className="size-5" />
           </div>
           <h1 className="text-lg font-semibold text-foreground">
-            You don&apos;t have access to this
+            {variant === "forbidden"
+              ? "Only team leads and org admins can see this"
+              : "You don't have access to this"}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This resource doesn&apos;t exist or you don&apos;t have permission
-            to view it.
+            {variant === "forbidden"
+              ? "You don't have access to this page with your current role."
+              : "This resource doesn't exist or you don't have permission to view it."}
           </p>
           <div className="mt-6">
             <Button className="h-10 w-full" onClick={handleBack}>

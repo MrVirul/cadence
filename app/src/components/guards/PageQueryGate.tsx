@@ -1,4 +1,8 @@
-import { getUiErrorDecision } from "@/lib/api-errors";
+import {
+  getApiErrorCode,
+  getApiStatus,
+  getUiErrorDecision,
+} from "@/lib/api-errors";
 import { NoAccess } from "./NoAccess";
 import { Suspended } from "./Suspended";
 
@@ -16,7 +20,9 @@ export function PageQueryGate({ error, orgId, children }: PageQueryGateProps) {
   }
 
   if (decision === "no_access") {
-    return <NoAccess />;
+    const isForbidden =
+      getApiErrorCode(error) === "forbidden" || getApiStatus(error) === 403;
+    return <NoAccess variant={isForbidden ? "forbidden" : "not_found"} />;
   }
 
   return <>{children}</>;

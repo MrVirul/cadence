@@ -9,8 +9,6 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   FileText,
   Loader2,
@@ -53,7 +51,6 @@ import type {
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -77,6 +74,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { DraftFromNotesDialog } from "@/components/week/DraftFromNotesDialog";
 import { AiReviewSkeleton, FindingCard } from "@/components/week/FindingCard";
+import { PlanReadOnlyView } from "@/components/week/PlanReadOnlyView";
+import { PlanStatusBadge } from "@/components/week/PlanStatusBadge";
+import { WeekBar } from "@/components/week/WeekBar";
 import { useUser } from "@/contexts/user-context";
 import {
   getAiErrorMessage,
@@ -87,9 +87,7 @@ import {
 } from "@/lib/api-errors";
 import { cn } from "@/lib/utils";
 import {
-  addWeeksUtc,
   currentWeekStartUtc,
-  getWeekRangeLabel,
   getWeekWindowStatus,
   isMondayUtc,
 } from "@/lib/week";
@@ -1013,9 +1011,6 @@ function WeekWorkspace({
     updatePlanMutation.isPending ||
     submitPlanMutation.isPending;
 
-  const prevMonday = addWeeksUtc(weekStart, -1);
-  const nextMonday = addWeeksUtc(weekStart, 1);
-
   if (!validMonday) {
     return (
       <div className="rounded-xl border bg-background p-6 text-center shadow-sm">
@@ -1049,85 +1044,15 @@ function WeekWorkspace({
       orgId={orgId}
     >
       <div className="space-y-6">
-        {/* Week Navigator Bar */}
-        <div className="flex flex-col gap-3 rounded-xl border bg-background p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-                {getWeekRangeLabel(weekStart)}
-              </h1>
-              {weekStart === thisMonday ? (
-                <Badge
-                  variant="outline"
-                  className="border-indigo-300 bg-indigo-50 text-indigo-800"
-                >
-                  This week
-                </Badge>
-              ) : isPastWeek ? (
-                <Badge
-                  variant="outline"
-                  className="border-slate-300 bg-slate-100 text-slate-700"
-                >
-                  Past week
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="border-slate-300 bg-slate-50 text-slate-700"
-                >
-                  Upcoming
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Week starting Monday, {weekStart} (UTC)
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon-sm"
-              aria-label="Previous week"
-              render={
-                <Link
-                  to="/$orgId/week/$weekStart"
-                  params={{ orgId, weekStart: prevMonday }}
-                />
-              }
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <Button
-              variant={weekStart === thisMonday ? "secondary" : "outline"}
-              size="sm"
-              disabled={weekStart === thisMonday}
-              render={
-                weekStart === thisMonday ? undefined : (
-                  <Link
-                    to="/$orgId/week/$weekStart"
-                    params={{ orgId, weekStart: thisMonday }}
-                  />
-                )
-              }
-            >
-              This week
-            </Button>
-            <Button
-              variant="outline"
-              size="icon-sm"
-              aria-label="Next week"
-              render={
-                <Link
-                  to="/$orgId/week/$weekStart"
-                  params={{ orgId, weekStart: nextMonday }}
-                />
-              }
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        </div>
+        <WeekBar
+          weekStart={weekStart}
+          renderWeekLink={(targetMonday) => (
+            <Link
+              to="/$orgId/week/$weekStart"
+              params={{ orgId, weekStart: targetMonday }}
+            />
+          )}
+        />
 
         {/* Past week read-only notice */}
         {isPastWeek && (
@@ -1264,16 +1189,10 @@ function WeekWorkspace({
             {/* Status & Actions Header */}
             <div className="flex flex-col gap-3 rounded-xl border bg-background p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2.5">
-                <Badge
-                  variant="outline"
-                  className={
-                    planDetail?.decision_comment
-                      ? "border-amber-300 bg-amber-100 text-amber-900"
-                      : "border-slate-300 bg-slate-100 text-slate-800"
-                  }
-                >
-                  {planDetail?.decision_comment ? "Sent back (Draft)" : "Draft"}
-                </Badge>
+                <PlanStatusBadge
+                  status="draft"
+                  hasDecisionComment={Boolean(planDetail?.decision_comment)}
+                />
 
                 <span
                   className={cn(
@@ -2004,264 +1923,60 @@ function ReadOnlyOrActivePlanView({
 }: ReadOnlyOrActivePlanViewProps) {
   const teamName =
     allTeams.find((t) => t.id === plan.team_id)?.name ?? "Assigned team";
-  const sortedTasks = [...plan.tasks].sort((a, b) => a.position - b.position);
-  const mainTask = sortedTasks.find((t) => t.kind === "main");
-  const subGoals = sortedTasks.filter((t) => t.kind === "sub_goal");
-  const gtmGoals = sortedTasks.filter((t) => t.kind === "gtm");
-
   const canTick = plan.status === "approved" && !isPastWeek;
-  const doneCount = sortedTasks.filter((t) => t.status === "done").length;
+
+  const statusNote =
+    plan.status === "submitted" ? (
+      <span className="text-xs font-medium text-amber-800">
+        Waiting for your team lead or an org admin
+      </span>
+    ) : null;
+
+  const actions = !isPastWeek ? (
+    <>
+      {plan.status === "submitted" && (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isWithdrawing || isApproving}
+            onClick={onWithdraw}
+          >
+            <Undo2 className="size-3.5" />
+            {isWithdrawing ? "Withdrawing..." : "Withdraw"}
+          </Button>
+          {isOrgAdminOrOwner && (
+            <Button
+              type="button"
+              size="sm"
+              disabled={isApproving || isWithdrawing}
+              onClick={onSelfApprove}
+            >
+              <Check className="size-3.5" />
+              {isApproving ? "Approving..." : "Approve"}
+            </Button>
+          )}
+        </>
+      )}
+
+      {plan.status === "approved" && (
+        <Button type="button" size="sm" onClick={onOpenCloseDialog}>
+          <CheckCircle2 className="size-3.5" />
+          Close the week
+        </Button>
+      )}
+    </>
+  ) : null;
 
   return (
-    <div className="space-y-6">
-      {/* Sent-back comment banner (for past weeks where a draft had a comment) */}
-      {plan.decision_comment && (
-        <div
-          role="alert"
-          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950 shadow-sm"
-        >
-          <div className="flex items-start gap-3">
-            <MessageSquareWarning className="mt-0.5 size-5 shrink-0 text-amber-700" />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">
-                Sent back for changes
-                {plan.decided_by ? ` by ${plan.decided_by.user.name}` : ""}
-              </p>
-              <p className="text-sm whitespace-pre-wrap text-amber-900">
-                {plan.decision_comment}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Bar */}
-      <div className="flex flex-col gap-3 rounded-xl border bg-background p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2.5">
-          {plan.status === "draft" && (
-            <Badge
-              variant="outline"
-              className="border-slate-300 bg-slate-100 text-slate-800"
-            >
-              Draft
-            </Badge>
-          )}
-          {plan.status === "submitted" && (
-            <Badge
-              variant="outline"
-              className="border-amber-300 bg-amber-50 text-amber-800"
-            >
-              Submitted
-            </Badge>
-          )}
-          {plan.status === "approved" && (
-            <Badge
-              variant="outline"
-              className="border-indigo-300 bg-indigo-50 text-indigo-800"
-            >
-              Approved
-            </Badge>
-          )}
-          {plan.status === "done" && (
-            <Badge
-              variant="outline"
-              className="border-emerald-300 bg-emerald-50 text-emerald-800"
-            >
-              Done
-            </Badge>
-          )}
-
-          {plan.status === "done" && plan.shipped === true && (
-            <Badge
-              variant="outline"
-              className="border-emerald-300 bg-emerald-50 text-emerald-800"
-            >
-              <CheckCircle2 className="mr-1 size-3.5" />
-              Shipped
-            </Badge>
-          )}
-          {plan.status === "done" && plan.shipped === false && (
-            <Badge
-              variant="outline"
-              className="border-amber-300 bg-amber-50 text-amber-800"
-            >
-              <XCircle className="mr-1 size-3.5" />
-              Not shipped
-            </Badge>
-          )}
-
-          <span className="text-xs text-muted-foreground">
-            Team:{" "}
-            <strong className="font-medium text-foreground">{teamName}</strong>
-          </span>
-
-          <span className="text-xs text-muted-foreground">
-            ({doneCount}/{sortedTasks.length} tasks done)
-          </span>
-
-          {plan.status === "submitted" && (
-            <span className="text-xs font-medium text-amber-800">
-              Waiting for your team lead or an org admin
-            </span>
-          )}
-        </div>
-
-        {/* Status transitions (only when not a past week) */}
-        {!isPastWeek && (
-          <div className="flex flex-wrap items-center gap-2">
-            {plan.status === "submitted" && (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isWithdrawing || isApproving}
-                  onClick={onWithdraw}
-                >
-                  <Undo2 className="size-3.5" />
-                  {isWithdrawing ? "Withdrawing..." : "Withdraw"}
-                </Button>
-                {isOrgAdminOrOwner && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={isApproving || isWithdrawing}
-                    onClick={onSelfApprove}
-                  >
-                    <Check className="size-3.5" />
-                    {isApproving ? "Approving..." : "Approve"}
-                  </Button>
-                )}
-              </>
-            )}
-
-            {plan.status === "approved" && (
-              <Button type="button" size="sm" onClick={onOpenCloseDialog}>
-                <CheckCircle2 className="size-3.5" />
-                Close the week
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Main Task */}
-      <section className="space-y-3 rounded-xl border bg-background p-4 shadow-sm sm:p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground">Main task</h2>
-          {canTick && (
-            <span className="text-xs text-muted-foreground">
-              Tick tasks as you complete them
-            </span>
-          )}
-        </div>
-
-        {mainTask ? (
-          <div className="flex items-start gap-3 rounded-lg border bg-muted/20 p-4">
-            <Checkbox
-              id={`tick-${mainTask.id}`}
-              checked={mainTask.status === "done"}
-              disabled={!canTick}
-              onCheckedChange={() => onTickTask(mainTask.id, mainTask.status)}
-              aria-label={`Mark main task "${mainTask.title}" as done`}
-              className="mt-0.5"
-            />
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <label
-                htmlFor={`tick-${mainTask.id}`}
-                className={cn(
-                  "block text-sm font-medium text-foreground",
-                  canTick && "cursor-pointer",
-                  mainTask.status === "done" &&
-                    "line-through text-muted-foreground"
-                )}
-              >
-                {mainTask.title}
-              </label>
-              {mainTask.why && (
-                <p className="text-xs text-muted-foreground">
-                  <strong className="font-medium text-foreground">Why:</strong>{" "}
-                  {mainTask.why}
-                </p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No main task set.</p>
-        )}
-      </section>
-
-      {/* Sub-goals */}
-      {subGoals.length > 0 && (
-        <section className="space-y-3 rounded-xl border bg-background p-4 shadow-sm sm:p-6">
-          <h2 className="text-base font-semibold text-foreground">Sub-goals</h2>
-          <div className="space-y-2.5">
-            {subGoals.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-start gap-3 rounded-lg border bg-muted/20 p-3.5"
-              >
-                <Checkbox
-                  id={`tick-${task.id}`}
-                  checked={task.status === "done"}
-                  disabled={!canTick}
-                  onCheckedChange={() => onTickTask(task.id, task.status)}
-                  aria-label={`Mark sub-goal "${task.title}" as done`}
-                  className="mt-0.5"
-                />
-                <label
-                  htmlFor={`tick-${task.id}`}
-                  className={cn(
-                    "block flex-1 text-sm text-foreground",
-                    canTick && "cursor-pointer",
-                    task.status === "done" &&
-                      "line-through text-muted-foreground"
-                  )}
-                >
-                  {task.title}
-                </label>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Go-to-market goals */}
-      {gtmGoals.length > 0 && (
-        <section className="space-y-3 rounded-xl border bg-background p-4 shadow-sm sm:p-6">
-          <h2 className="text-base font-semibold text-foreground">
-            Go-to-market goals
-          </h2>
-          <div className="space-y-2.5">
-            {gtmGoals.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-start gap-3 rounded-lg border bg-muted/20 p-3.5"
-              >
-                <Checkbox
-                  id={`tick-${task.id}`}
-                  checked={task.status === "done"}
-                  disabled={!canTick}
-                  onCheckedChange={() => onTickTask(task.id, task.status)}
-                  aria-label={`Mark GTM goal "${task.title}" as done`}
-                  className="mt-0.5"
-                />
-                <label
-                  htmlFor={`tick-${task.id}`}
-                  className={cn(
-                    "block flex-1 text-sm text-foreground",
-                    canTick && "cursor-pointer",
-                    task.status === "done" &&
-                      "line-through text-muted-foreground"
-                  )}
-                >
-                  {task.title}
-                </label>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+    <PlanReadOnlyView
+      plan={plan}
+      teamName={teamName}
+      canTick={canTick}
+      onTickTask={onTickTask}
+      statusNote={statusNote}
+      actions={actions}
+    />
   );
 }

@@ -1,19 +1,14 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  CalendarDays,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  XCircle,
-} from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { useListPlans } from "@/api/endpoints/plans/plans";
-import type { PlanListItemStatus } from "@/api/model";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  PlanStatusBadge,
+  ShippedBadge,
+} from "@/components/week/PlanStatusBadge";
 import { currentWeekStartUtc, getWeekRangeLabel } from "@/lib/week";
 
 export const Route = createFileRoute("/$orgId/history")({
@@ -21,28 +16,6 @@ export const Route = createFileRoute("/$orgId/history")({
 });
 
 const PAGE_SIZE = 10;
-
-const STATUS_BADGE: Record<
-  PlanListItemStatus,
-  { label: string; className: string }
-> = {
-  draft: {
-    label: "Draft",
-    className: "border-slate-300 bg-slate-100 text-slate-700",
-  },
-  submitted: {
-    label: "Submitted",
-    className: "border-amber-300 bg-amber-50 text-amber-800",
-  },
-  approved: {
-    label: "Approved",
-    className: "border-indigo-300 bg-indigo-50 text-indigo-800",
-  },
-  done: {
-    label: "Done",
-    className: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  },
-};
 
 function MyHistoryPage() {
   const { orgId } = Route.useParams();
@@ -147,64 +120,38 @@ function MyHistoryPage() {
         ) : (
           <div className="space-y-4">
             <div className="divide-y overflow-hidden rounded-xl border bg-background shadow-sm">
-              {pageItems.map((plan) => {
-                const statusInfo = STATUS_BADGE[plan.status];
-                return (
-                  <Link
-                    key={plan.id}
-                    to="/$orgId/week/$weekStart"
-                    params={{ orgId, weekStart: plan.week_start }}
-                    className="flex flex-col gap-3 p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          {getWeekRangeLabel(plan.week_start)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          (Week of {plan.week_start})
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {plan.tasks_done} / {plan.tasks_total}{" "}
-                        {plan.tasks_total === 1 ? "task" : "tasks"} done
-                      </p>
+              {pageItems.map((plan) => (
+                <Link
+                  key={plan.id}
+                  to="/$orgId/week/$weekStart"
+                  params={{ orgId, weekStart: plan.week_start }}
+                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-foreground">
+                        {getWeekRangeLabel(plan.week_start)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        (Week of {plan.week_start})
+                      </span>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      {plan.tasks_done} / {plan.tasks_total}{" "}
+                      {plan.tasks_total === 1 ? "task" : "tasks"} done
+                    </p>
+                  </div>
 
-                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                      <Badge variant="outline" className={statusInfo.className}>
-                        {statusInfo.label}
-                      </Badge>
-
-                      {plan.shipped === true && (
-                        <Badge
-                          variant="outline"
-                          className="border-emerald-300 bg-emerald-50 text-emerald-800"
-                        >
-                          <CheckCircle2 className="mr-1 size-3.5" />
-                          Shipped
-                        </Badge>
-                      )}
-                      {plan.shipped === false && (
-                        <Badge
-                          variant="outline"
-                          className="border-amber-300 bg-amber-50 text-amber-800"
-                        >
-                          <XCircle className="mr-1 size-3.5" />
-                          Not shipped
-                        </Badge>
-                      )}
-                      {plan.shipped === null && (
-                        <span className="text-xs text-muted-foreground">
-                          Not closed
-                        </span>
-                      )}
-
-                      <ChevronRight className="hidden size-4 text-muted-foreground sm:block" />
-                    </div>
-                  </Link>
-                );
-              })}
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                    <PlanStatusBadge status={plan.status} />
+                    <ShippedBadge
+                      shipped={plan.shipped}
+                      nullLabel="Not closed"
+                    />
+                    <ChevronRight className="hidden size-4 text-muted-foreground sm:block" />
+                  </div>
+                </Link>
+              ))}
             </div>
 
             {pastPlans.length > PAGE_SIZE && (
