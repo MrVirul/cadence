@@ -6,19 +6,27 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   CalendarDays,
   Check,
   ChevronsUpDown,
+  FolderKanban,
   History,
   LogOut,
   Menu,
   Plus,
+  Settings,
+  UserCheck,
+  Users,
 } from "lucide-react";
 import { logout } from "@/api/endpoints/auth/auth";
 import { useGetOrg } from "@/api/endpoints/orgs/orgs";
+import {
+  getGetTeamQueryOptions,
+  useListTeams,
+} from "@/api/endpoints/teams/teams";
 import { AuthGuard } from "@/components/AuthGuard";
 import { NoAccess } from "@/components/guards/NoAccess";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
@@ -187,6 +195,53 @@ function SidebarContent({
   const queryClient = useQueryClient();
   const { user, memberships } = useUser();
 
+  const currentMembership = memberships.find((m) => m.org.id === orgId);
+  const myRole = currentMembership?.role ?? "member";
+  const isOrgAdminOrOwner = myRole === "owner" || myRole === "admin";
+
+  const teamsQuery = useListTeams(
+    orgId,
+    { limit: 100 },
+    {
+      query: {
+        retry: false,
+      },
+    }
+  );
+
+  const memberTeamsWithLead = !isOrgAdminOrOwner
+    ? (teamsQuery.data?.items ?? []).filter(
+        (t) => t.lead_membership_id !== null
+      )
+    : [];
+
+  // Since /app/me does not include membership_id on MeMembership, for a plain member
+  // we inspect the teams they belong to via GET /orgs/{org_id}/teams/{team_id}, match
+  // member.user.id === user.id to get their membership_id, and compare with lead_membership_id.
+  const teamDetailQueries = useQueries({
+    queries: memberTeamsWithLead.map((team) =>
+      getGetTeamQueryOptions(orgId, team.id, {
+        query: { retry: false },
+      })
+    ),
+  });
+
+  const teamsILead = memberTeamsWithLead.filter((_team, idx) => {
+    const detail = teamDetailQueries[idx]?.data;
+    if (!detail || !user) {
+      return false;
+    }
+    const myMemberRecord = detail.members.find((m) => m.user.id === user.id);
+    return (
+      Boolean(myMemberRecord) &&
+      detail.lead_membership_id === myMemberRecord?.membership_id
+    );
+  });
+
+  const sidebarTeams = isOrgAdminOrOwner
+    ? (teamsQuery.data?.items ?? [])
+    : teamsILead;
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await logout();
@@ -222,7 +277,10 @@ function SidebarContent({
   const isMyWeekActive =
     location.pathname === `/${orgId}` ||
     location.pathname.startsWith(`/${orgId}/week/`);
-  const isHistoryActive = location.pathname.startsWith(`/${orgId}/history`);
+  const isHistoryActive = location.pathname === `/${orgId}/history`;
+  const isTeamsAdminActive = location.pathname === `/${orgId}/teams`;
+  const isMembersAdminActive = location.pathname === `/${orgId}/members`;
+  const isSettingsAdminActive = location.pathname === `/${orgId}/settings`;
 
   const hasMultipleOrgs = memberships.length > 1;
 
@@ -308,35 +366,126 @@ function SidebarContent({
       </div>
 
       {/* Main nav area */}
-      <nav aria-label="Main navigation" className="flex-1 space-y-1 p-3">
-        <Link
-          to="/$orgId/week/$weekStart"
-          params={{ orgId, weekStart: thisMonday }}
-          onClick={() => onActionComplete?.()}
-          className={cn(
-            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            isMyWeekActive
-              ? "bg-primary/10 text-primary"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <CalendarDays className="size-4 shrink-0" />
-          <span>My week</span>
-        </Link>
-        <Link
-          to="/$orgId/history"
-          params={{ orgId }}
-          onClick={() => onActionComplete?.()}
-          className={cn(
-            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            isHistoryActive
-              ? "bg-primary/10 text-primary"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <History className="size-4 shrink-0" />
-          <span>History</span>
-        </Link>
+      <nav
+        aria-label="Main navigation"
+        className="flex-1 space-y-5 overflow-y-auto p-3"
+      >
+        <div className="space-y-1">
+          <Link
+            to="/$orgId/week/$weekStart"
+            params={{ orgId, weekStart: thisMonday }}
+            onClick={() => onActionComplete?.()}
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isMyWeekActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <CalendarDays className="size-4 shrink-0" />
+            <span>My week</span>
+          </Link>
+          <Link
+            to="/$orgId/history"
+            params={{ orgId }}
+            onClick={() => onActionComplete?.()}
+            className={cn(
+              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isHistoryActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <History className="size-4 shrink-0" />
+            <span>History</span>
+          </Link>
+        </div>
+
+        {/* Team entries for leads, or Teams group for admins/owners */}
+        {sidebarTeams.length > 0 && (
+          <div className="space-y-1">
+            <p className="px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              {isOrgAdminOrOwner ? "Teams" : "Team"}
+            </p>
+            {sidebarTeams.map((team) => {
+              const isTeamActive = location.pathname.startsWith(
+                `/${orgId}/team/${team.id}/`
+              );
+              return (
+                <Link
+                  key={team.id}
+                  to="/$orgId/team/$teamId/week/$weekStart"
+                  params={{
+                    orgId,
+                    teamId: team.id,
+                    weekStart: thisMonday,
+                  }}
+                  onClick={() => onActionComplete?.()}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isTeamActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <UserCheck className="size-4 shrink-0" />
+                  <span className="truncate">{team.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Organization admin links (owner/admin only) */}
+        {isOrgAdminOrOwner && (
+          <div className="space-y-1">
+            <p className="px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Organization
+            </p>
+            <Link
+              to="/$orgId/teams"
+              params={{ orgId }}
+              onClick={() => onActionComplete?.()}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isTeamsAdminActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <FolderKanban className="size-4 shrink-0" />
+              <span>Teams</span>
+            </Link>
+            <Link
+              to="/$orgId/members"
+              params={{ orgId }}
+              onClick={() => onActionComplete?.()}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isMembersAdminActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Users className="size-4 shrink-0" />
+              <span>Members</span>
+            </Link>
+            <Link
+              to="/$orgId/settings"
+              params={{ orgId }}
+              onClick={() => onActionComplete?.()}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isSettingsAdminActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Settings className="size-4 shrink-0" />
+              <span>Settings</span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* User profile and Log out */}
