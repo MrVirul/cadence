@@ -25,5 +25,14 @@ class MessageResponse(Model):
     message: str
 
 
+class PageResponse[T](Model):
+    """Pagination envelope shared by list endpoints (docs/API.md conventions)."""
+
+    items: list[T]
+    total: int
+    limit: int
+    offset: int
+
+
 class HealthCheckResponse(Model):
     status: str  # "healthy" or "unhealthy"

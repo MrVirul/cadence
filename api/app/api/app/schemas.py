@@ -102,3 +102,37 @@ class AcceptedMembership(Model):
 
 class InviteAcceptResponse(Model):
     membership: AcceptedMembership
+
+
+class OrgUpdateRequest(RequestModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class MemberUser(Model):
+    id: UUID4
+    name: str
+    email: str
+
+
+class MembershipResponse(Model):
+    membership_id: UUID4
+    user: MemberUser
+    role: OrgRole
+    created_at: DateTime
+
+
+class MemberRoleUpdateRequest(RequestModel):
+    role: OrgRole
+
+
+class InviteCreateRequest(RequestModel):
+    role: InviteRole
+    expires_in_days: int | None = Field(default=None, ge=1, le=30)
+
+
+class InviteResponse(Model):
+    id: UUID4
+    token: str
+    role: InviteRole
+    expires_at: DateTime
+    url: str
