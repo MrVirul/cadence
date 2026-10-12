@@ -223,6 +223,33 @@ Content-Type: application/json
   "membership_id": "MEMBERSHIP_ID"
 }
 
+** Team week (org-scoped)
+GET /orgs/ORG_ID/teams/TEAM_ID/week?week=YYYY-MM-DD
+# Returns: 200 OK with {week_start, rows: [{membership_id, user, plan_id,
+# status, tasks_done, tasks_total, shipped}]}
+# Note: one row per CURRENT team member, including members with no plan that
+# week (status "not_started", plan_id null, 0/0, shipped null). `week` must be a
+# Monday (422 otherwise); it defaults to the current week. Only plans filed
+# under THIS team count — a member in two teams files one plan under one of
+# them, so the other team reads as not_started.
+# Errors: 403 forbidden (a teammate who is not the team lead),
+# 404 not_found (no read access to the team),
+# 422 validation_error (week is not a Monday)
+# Requires: the lead of the team, an org admin, or an org owner
+
+** Team history (org-scoped)
+GET /orgs/ORG_ID/teams/TEAM_ID/history?limit=12&offset=0
+# Returns: 200 OK with {items, total, limit, offset, shipped_rate}; items are
+# {week_start, total, submitted_count, approved_count, done_count, shipped_count}
+# Note: PAST weeks only (week_start before the current week), newest first.
+# `total` counts every plan filed under the team that week (any status).
+# `shipped_rate` = shipped plans / all plans over the RETURNED page (rounded to
+# 4 dp; null when the page has no plans). `total` (pagination) is the number of
+# past weeks with any plan.
+# Errors: 403 forbidden (a teammate who is not the team lead),
+# 404 not_found (no read access to the team)
+# Requires: the lead of the team, an org admin, or an org owner
+
 ** List plans (org-scoped)
 GET /orgs/ORG_ID/plans?week=YYYY-MM-DD&mine=true&limit=50&offset=0
 # Returns: 200 OK with {items, total, limit, offset}; items are

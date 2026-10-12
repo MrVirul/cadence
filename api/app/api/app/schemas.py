@@ -280,3 +280,52 @@ class PlanListItem(Model):
     decided_at: DateTime | None
     created_at: DateTime
     updated_at: DateTime | None
+
+
+# --- Team week & history (docs/API.md §"Teams") ----------------------------
+#
+# These responses are metadata only: a row carries the plan's status and task
+# counters, never a task title or `why`. The team lead/admin see whether work is
+# done, not what it says (least privilege, docs/DECISIONS.md).
+
+# A team-week row is a real plan status, or "not_started" when the member has
+# no plan filed under this team that week.
+TeamWeekStatus = Literal["not_started", "draft", "submitted", "approved", "done"]
+
+
+class TeamWeekRow(Model):
+    """One current team member's week: a plan summary or an empty row."""
+
+    membership_id: UUID4
+    user: MemberUser
+    plan_id: UUID4 | None
+    status: TeamWeekStatus
+    tasks_done: int
+    tasks_total: int
+    shipped: bool | None
+
+
+class TeamWeekResponse(Model):
+    week_start: date
+    rows: list[TeamWeekRow]
+
+
+class TeamHistoryWeek(Model):
+    """One past week's plan counts for a team (no task text)."""
+
+    week_start: date
+    total: int
+    submitted_count: int
+    approved_count: int
+    done_count: int
+    shipped_count: int
+
+
+class TeamHistoryResponse(Model):
+    """A page of past weeks plus the shipped rate over the returned page."""
+
+    items: list[TeamHistoryWeek]
+    total: int
+    limit: int
+    offset: int
+    shipped_rate: float | None

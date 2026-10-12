@@ -176,3 +176,98 @@ export const SetTeamLeadResponse = zod.object({
   lead_membership_id: zod.union([zod.string(), zod.null()]),
   member_count: zod.number().int(),
 });
+
+/**
+ * @summary Team Week
+ */
+export const TeamWeekParams = zod.object({
+  team_id: zod.string().uuid(),
+  org_id: zod.string().uuid(),
+});
+
+export const TeamWeekQueryParams = zod.object({
+  week: zod
+    .union([zod.string().date(), zod.null()])
+    .optional()
+    .describe("A Monday; defaults to now"),
+});
+
+export const TeamWeekResponse = zod.object({
+  week_start: zod.string().date(),
+  rows: zod.array(
+    zod
+      .object({
+        membership_id: zod.string(),
+        user: zod.object({
+          id: zod.string(),
+          name: zod.string(),
+          email: zod.string(),
+        }),
+        plan_id: zod.union([zod.string(), zod.null()]),
+        status: zod.enum([
+          "not_started",
+          "draft",
+          "submitted",
+          "approved",
+          "done",
+        ]),
+        tasks_done: zod.number().int(),
+        tasks_total: zod.number().int(),
+        shipped: zod.union([zod.boolean(), zod.null()]),
+      })
+      .describe(
+        "One current team member's week: a plan summary or an empty row."
+      )
+  ),
+});
+
+/**
+ * @summary Team History
+ */
+export const TeamHistoryParams = zod.object({
+  team_id: zod.string().uuid(),
+  org_id: zod.string().uuid(),
+});
+
+export const teamHistoryQueryLimitDefault = 12;
+export const teamHistoryQueryLimitMax = 100;
+
+export const teamHistoryQueryOffsetDefault = 0;
+export const teamHistoryQueryOffsetMin = 0;
+
+export const TeamHistoryQueryParams = zod.object({
+  limit: zod
+    .number()
+    .int()
+    .min(1)
+    .max(teamHistoryQueryLimitMax)
+    .default(teamHistoryQueryLimitDefault),
+  offset: zod
+    .number()
+    .int()
+    .min(teamHistoryQueryOffsetMin)
+    .default(teamHistoryQueryOffsetDefault),
+});
+
+export const TeamHistoryResponse = zod
+  .object({
+    items: zod.array(
+      zod
+        .object({
+          week_start: zod.string().date(),
+          total: zod.number().int(),
+          submitted_count: zod.number().int(),
+          approved_count: zod.number().int(),
+          done_count: zod.number().int(),
+          shipped_count: zod.number().int(),
+        })
+        .describe("One past week's plan counts for a team (no task text).")
+    ),
+    total: zod.number().int(),
+    limit: zod.number().int(),
+    offset: zod.number().int(),
+    shipped_rate: zod.union([zod.number(), zod.null()]),
+  })
+  .describe(
+    "A page of past weeks plus the shipped rate over the returned page."
+  );

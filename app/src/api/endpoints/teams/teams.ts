@@ -27,10 +27,14 @@ import type {
   PageResponseTeamResponse,
   TeamCreateRequest,
   TeamDetailResponse,
+  TeamHistoryParams,
+  TeamHistoryResponse,
   TeamLeadRequest,
   TeamMembersRequest,
   TeamResponse,
   TeamUpdateRequest,
+  TeamWeekParams,
+  TeamWeekResponse,
 } from "../../model";
 
 import { customInstance } from "../../../lib/api-client";
@@ -835,3 +839,387 @@ export const useSetTeamLead = <
 > => {
   return useMutation(getSetTeamLeadMutationOptions(options), queryClient);
 };
+export const getTeamWeekUrl = (
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/orgs/${orgId}/teams/${teamId}/week?${stringifiedParams}`
+    : `/orgs/${orgId}/teams/${teamId}/week`;
+};
+
+/**
+ * @summary Team Week
+ */
+export const teamWeek = async (
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<TeamWeekResponse> => {
+  return customInstance<TeamWeekResponse>(
+    getTeamWeekUrl(orgId, teamId, params),
+    {
+      ...options,
+      method: "GET",
+    }
+  );
+};
+
+export const getTeamWeekQueryKey = (
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams
+) => {
+  return [
+    `/orgs/${orgId}/teams/${teamId}/week`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getTeamWeekQueryOptions = <
+  TData = Awaited<ReturnType<typeof teamWeek>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamWeek>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getTeamWeekQueryKey(orgId, teamId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof teamWeek>>> = ({
+    signal,
+  }) => teamWeek(orgId, teamId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      orgId !== null &&
+      orgId !== undefined &&
+      teamId !== null &&
+      teamId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof teamWeek>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type TeamWeekQueryResult = NonNullable<
+  Awaited<ReturnType<typeof teamWeek>>
+>;
+export type TeamWeekQueryError = ErrorType<HTTPValidationError>;
+
+export function useTeamWeek<
+  TData = Awaited<ReturnType<typeof teamWeek>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params: undefined | TeamWeekParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamWeek>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof teamWeek>>,
+          TError,
+          Awaited<ReturnType<typeof teamWeek>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTeamWeek<
+  TData = Awaited<ReturnType<typeof teamWeek>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamWeek>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof teamWeek>>,
+          TError,
+          Awaited<ReturnType<typeof teamWeek>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTeamWeek<
+  TData = Awaited<ReturnType<typeof teamWeek>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamWeek>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Team Week
+ */
+
+export function useTeamWeek<
+  TData = Awaited<ReturnType<typeof teamWeek>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamWeekParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamWeek>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getTeamWeekQueryOptions(orgId, teamId, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getTeamHistoryUrl = (
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/orgs/${orgId}/teams/${teamId}/history?${stringifiedParams}`
+    : `/orgs/${orgId}/teams/${teamId}/history`;
+};
+
+/**
+ * @summary Team History
+ */
+export const teamHistory = async (
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<TeamHistoryResponse> => {
+  return customInstance<TeamHistoryResponse>(
+    getTeamHistoryUrl(orgId, teamId, params),
+    {
+      ...options,
+      method: "GET",
+    }
+  );
+};
+
+export const getTeamHistoryQueryKey = (
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams
+) => {
+  return [
+    `/orgs/${orgId}/teams/${teamId}/history`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getTeamHistoryQueryOptions = <
+  TData = Awaited<ReturnType<typeof teamHistory>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamHistory>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getTeamHistoryQueryKey(orgId, teamId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof teamHistory>>> = ({
+    signal,
+  }) => teamHistory(orgId, teamId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      orgId !== null &&
+      orgId !== undefined &&
+      teamId !== null &&
+      teamId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof teamHistory>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type TeamHistoryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof teamHistory>>
+>;
+export type TeamHistoryQueryError = ErrorType<HTTPValidationError>;
+
+export function useTeamHistory<
+  TData = Awaited<ReturnType<typeof teamHistory>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params: undefined | TeamHistoryParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamHistory>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof teamHistory>>,
+          TError,
+          Awaited<ReturnType<typeof teamHistory>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTeamHistory<
+  TData = Awaited<ReturnType<typeof teamHistory>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamHistory>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof teamHistory>>,
+          TError,
+          Awaited<ReturnType<typeof teamHistory>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useTeamHistory<
+  TData = Awaited<ReturnType<typeof teamHistory>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamHistory>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Team History
+ */
+
+export function useTeamHistory<
+  TData = Awaited<ReturnType<typeof teamHistory>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  teamId: string,
+  params?: TeamHistoryParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof teamHistory>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getTeamHistoryQueryOptions(
+    orgId,
+    teamId,
+    params,
+    options
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

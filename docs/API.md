@@ -145,8 +145,8 @@ demoted or removed (`409 last_owner`).
 | POST | `/app/orgs/{org_id}/plans/{plan_id}/approve` | lead of team, admin, owner; the author only when **no other eligible approver exists** (blocked when one does) | — | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read but not eligible, incl. self-approval when another approver exists), 409 `invalid_transition` |
 | POST | `/app/orgs/{org_id}/plans/{plan_id}/send-back` | same as `approve` | `{comment}` (non-empty) | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read but not eligible), 409 `invalid_transition`, 422 `validation_error` |
 | POST | `/app/orgs/{org_id}/plans/{plan_id}/close` | author, from `approved` | `{shipped: bool}` | `plan` | 200 | 404 `not_found` (no read access), 403 `forbidden` (can read, not the author), 409 `invalid_transition`, 422 |
-| GET | `/app/orgs/{org_id}/teams/{team_id}/week` | lead of team, admin, owner | `?week=YYYY-MM-DD` | `{week_start, rows:[{membership_id, plan_id (nullable), user, status, tasks_done, tasks_total, shipped}]}` | 200 | 404 `not_found` (no read access) |
-| GET | `/app/orgs/{org_id}/teams/{team_id}/history` | lead of team, admin, owner | `?limit&offset` | `{items:[{week_start, shipped_count, total}], shipped_rate}` | 200 | 404 `not_found` (no read access) |
+| GET | `/app/orgs/{org_id}/teams/{team_id}/week` | lead of team, admin, owner | `?week=YYYY-MM-DD` (a Monday; default: current week) | `{week_start, rows:[{membership_id, user, plan_id (nullable), status, tasks_done, tasks_total, shipped (nullable)}]}` | 200 | 404 `not_found` (no read access), 403 `forbidden` (teammate who is not the lead), 422 `validation_error` (week not a Monday) |
+| GET | `/app/orgs/{org_id}/teams/{team_id}/history` | lead of team, admin, owner | `?limit&offset` | `{items:[{week_start, total, submitted_count, approved_count, done_count, shipped_count}], total, limit, offset, shipped_rate}` | 200 | 404 `not_found` (no read access), 403 `forbidden` (teammate who is not the lead) |
 
 `plan` response shape: `{id, week_start, status, team_id, author:{membership_id,
 user}, submitted_at, decided_at, decided_by, decision_comment, shipped,
@@ -157,6 +157,18 @@ updated in place, so their ids stay stable across edits. New tasks are sent
 without an `id` (the server assigns one). Tasks that exist on the plan but are
 absent from the body are deleted. This keeps client-side state and task
 references stable.
+
+**Week & history are metadata only.** Both responses carry the plan's status and
+task counters, never a task title or `why` (least privilege — a lead sees
+whether work is done, not what it says). The week view returns one row for every
+*current* team member, including members with no plan that week (`status`
+`not_started`, `plan_id` null, `0/0`, `shipped` null), computed with one grouped
+aggregate. Only plans filed under **this** team count: a member who belongs to
+two teams files a single weekly plan under one of them, so the other team reads
+as `not_started`. History lists **past** weeks only (`week_start` before the
+current week), newest first, one `total` per week counting every plan filed
+under the team that week whatever its status; `shipped_rate` is shipped plans ÷
+all plans over the **returned page** (`null` when the page has no plans).
 
 ### AI (org-scoped, stateless)
 

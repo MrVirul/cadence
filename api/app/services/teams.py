@@ -1,18 +1,20 @@
 import uuid
 from collections.abc import Sequence
+from datetime import date
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import and_, delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.app.org_access import OrgContext, get_in_org
+from app.clock import current_week_start
 from app.exceptions import (
     ConflictException,
     ResourceNotFoundException,
     RoleForbiddenException,
     ValidationException,
 )
-from app.models import Membership, Plan, Team, TeamMember, User
+from app.models import Membership, Plan, Task, Team, TeamMember, User
 
 _ADMIN_ROLES = {"admin", "owner"}
 
@@ -88,6 +90,148 @@ class TeamService:
         ):
             return team
         raise ResourceNotFoundException("Team not found")
+
+    async def get_for_view(self, *, ctx: OrgContext, team_id: uuid.UUID) -> Team:
+        """Resolve a team for the lead/admin week & history view.
+
+        Read-then-act, matching the global 404/403 rule:
+
+        - an org owner/admin may view any team (``200``);
+        - the team's **lead** may view their own team (``200``);
+        - another member of the team can *read* the team but may not view its
+          week/history, so they get ``403 forbidden``;
+        - everyone else cannot read the team at all, so they get an
+          indistinguishable ``404 not_found``.
+        """
+        team = await get_in_org(self.session, Team, team_id, ctx.org.id)
+        if ctx.role in _ADMIN_ROLES or team.lead_membership_id == ctx.membership.id:
+            return team
+        if await self._is_member(team.id, ctx.membership.id):
+            raise RoleForbiddenException()
+        raise ResourceNotFoundException("Team not found")
+
+    async def team_week(
+        self, *, ctx: OrgContext, team_id: uuid.UUID, week: date | None, today: date
+    ) -> tuple[date, list[tuple[Membership, User, Plan | None, int, int]]]:
+        """One row per current team member for ``week`` (default: this week).
+
+        Only plans filed under *this* team count: a member who belongs to two
+        teams files their single weekly plan under one of them, so their plan
+        in the other team reads as ``not_started`` here. Members with no plan
+        that week still appear, as an empty row.
+        """
+        team = await self.get_for_view(ctx=ctx, team_id=team_id)
+        week_start = self._resolve_week(week, today)
+        return week_start, await self._week_rows(team=team, week_start=week_start)
+
+    async def team_history(
+        self,
+        *,
+        ctx: OrgContext,
+        team_id: uuid.UUID,
+        today: date,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[tuple[date, int, int, int, int, int]], int, float | None]:
+        """Past weeks of a team, newest first, with a shipped rate for the page.
+
+        ``total`` (for pagination) is the number of past weeks that have any
+        plan. Each week's ``total`` counts every plan filed under this team that
+        week, whatever its status, so unfinished plans count against the shipped
+        rate. ``shipped_rate`` is shipped plans ÷ all plans over the *returned
+        page* (``None`` when the page has no plans).
+        """
+        team = await self.get_for_view(ctx=ctx, team_id=team_id)
+        conditions = (
+            Plan.org_id == team.org_id,
+            Plan.team_id == team.id,
+            Plan.week_start < current_week_start(today),
+        )
+        week_count = await self.session.scalar(
+            select(func.count(func.distinct(Plan.week_start))).where(*conditions)
+        )
+        result = await self.session.execute(
+            select(
+                Plan.week_start,
+                func.count(Plan.id).label("total"),
+                func.count(Plan.id)
+                .filter(Plan.status == "submitted")
+                .label("submitted_count"),
+                func.count(Plan.id)
+                .filter(Plan.status == "approved")
+                .label("approved_count"),
+                func.count(Plan.id).filter(Plan.status == "done").label("done_count"),
+                func.count(Plan.id)
+                .filter(Plan.shipped.is_(True))
+                .label("shipped_count"),
+            )
+            .where(*conditions)
+            .group_by(Plan.week_start)
+            .order_by(Plan.week_start.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        rows = [
+            (
+                row.week_start,
+                int(row.total),
+                int(row.submitted_count),
+                int(row.approved_count),
+                int(row.done_count),
+                int(row.shipped_count),
+            )
+            for row in result.all()
+        ]
+        page_plans = sum(row[1] for row in rows)
+        page_shipped = sum(row[5] for row in rows)
+        shipped_rate = round(page_shipped / page_plans, 4) if page_plans else None
+        return rows, week_count or 0, shipped_rate
+
+    async def _week_rows(
+        self, *, team: Team, week_start: date
+    ) -> list[tuple[Membership, User, Plan | None, int, int]]:
+        """Grouped read of every team member with their plan and task counters.
+
+        One aggregate query: ``team_members`` join members/users, left-joined to
+        the single plan filed under this team for the week, left-joined to its
+        tasks. No per-member query (docs/API.md conventions).
+        """
+        tasks_done = func.count(Task.id).filter(Task.status == "done")
+        tasks_total = func.count(Task.id)
+        result = await self.session.execute(
+            select(Membership, User, Plan, tasks_done, tasks_total)
+            .select_from(TeamMember)
+            .join(Membership, Membership.id == TeamMember.membership_id)
+            .join(User, User.id == Membership.user_id)
+            .outerjoin(
+                Plan,
+                and_(
+                    Plan.membership_id == Membership.id,
+                    Plan.week_start == week_start,
+                    Plan.team_id == team.id,
+                ),
+            )
+            .outerjoin(Task, Task.plan_id == Plan.id)
+            .where(
+                TeamMember.team_id == team.id,
+                TeamMember.org_id == team.org_id,
+            )
+            .group_by(Membership.id, User.id, Plan.id)
+            .order_by(User.first_name, User.last_name, Membership.id)
+        )
+        return [
+            (membership, user, plan, int(done), int(total))
+            for membership, user, plan, done, total in result.all()
+        ]
+
+    @staticmethod
+    def _resolve_week(week: date | None, today: date) -> date:
+        """``week`` when it is a Monday, else the current week; non-Monday 422."""
+        if week is None:
+            return current_week_start(today)
+        if week.weekday() != 0:
+            raise ValidationException("week must be a Monday")
+        return week
 
     async def get_for_write(
         self, *, ctx: OrgContext, team_id: uuid.UUID, lock: bool = False

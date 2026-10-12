@@ -71,3 +71,10 @@ Launchbase folder-level `AGENTS.md` disagree, the **root brief wins**.
 - 2026-10-12 — Task ticking is read-then-act too: a teammate who cannot read the plan gets `404`, a reader who is not the author (e.g. an org owner) gets `403` — matches the global split and the test now asserts both.
 - 2026-10-12 — The injected "today" dependency (`get_today`) is overridden on the **mounted `/app` sub-application** in tests (`app.main.app_api`), not the root app — the customer routes live on the sub-app, so parent-app overrides silently no-op (conftest's `get_db` override only worked by accident via the module-global engine swap).
 - 2026-10-12 — `decided_by` is modelled as a `PlanPerson` (membership + user) rather than a raw id; `decision_comment` is cleared on **approve** (a fresh approval is not a lingering "sent back" reason) and set to the required comment on **send-back**.
+
+## Phase 3.6 — team week & history
+
+- 2026-10-12 — A member who belongs to two teams files their single weekly plan under exactly one of them (`plans.team_id`); the week view of the *other* team shows that member as `not_started` — the row belongs to the team the plan was filed under, so no plan is counted twice across teams.
+- 2026-10-12 — `shipped_rate` is shipped plans ÷ all plans over the **returned page** of past weeks (rounded to 4 dp, `null` when the page has no plans), and a week's `total` counts every plan filed under the team that week whatever its status — unfinished/abandoned plans should count against the rate, not disappear from it.
+- 2026-10-12 — Week/history `?week=` must be a Monday (`422 validation_error` otherwise); a teammate who is not the team's lead can read the team but not its week/history, so they get `403 forbidden`, while an org member outside the team gets `404 not_found` — same global read-then-act split as the rest of the teams surface.
+- 2026-10-12 — Added a second org-A team to the tenancy-matrix fixture (`week_team_a`) where the shared plain member is *not* the lead, so the week/history registry legs exercise the required teammate = `403` (the original `team_a` has that member as its lead and would return `200`).

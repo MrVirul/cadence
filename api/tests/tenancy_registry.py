@@ -41,6 +41,7 @@ class World:
         team_a_id: uuid.UUID,
         team_member_a_token: str,
         team_member_a_membership_id: uuid.UUID,
+        week_team_a_id: uuid.UUID,
         plan_team_a_id: uuid.UUID,
         draft_plan_id: uuid.UUID,
         draft_task_id: uuid.UUID,
@@ -65,6 +66,12 @@ class World:
         self.team_a_id = team_a_id
         self.team_member_a_token = team_member_a_token
         self.team_member_a_membership_id = team_member_a_membership_id
+        # ``week_team_a`` is a second Org A team used only for the week/history
+        # matrix legs: ``team_member`` is a *plain member* (not the lead) so the
+        # teammate leg must be 403, and ``member`` is deliberately left out so
+        # the outsider leg is 404. ``team_a`` itself cannot serve here because
+        # ``team_member`` is its lead there and would get 200.
+        self.week_team_a_id = week_team_a_id
         # Plan fixtures. ``plan_team_a`` is ``member_a``'s team (lead:
         # ``team_member_a``); ``member_a`` authors a draft, a submitted and an
         # approved plan in it, one per week. ``next_week_start`` is a valid
@@ -224,6 +231,28 @@ TENANCY_REGISTRY: list[RouteCase] = [
         body_for_a=lambda world: {
             "membership_id": str(world.team_member_a_membership_id)
         },
+        outsider_status=404,
+        team_member_status=403,
+    ),
+    # The week/history view is lead/admin only (docs/API.md §"Teams"). They use
+    # ``week_team_a``, where ``team_member_a`` is a plain member: a teammate who
+    # is not the lead can read the team but not its week, so 403; an org member
+    # outside it gets an indistinguishable 404.
+    RouteCase(
+        method="GET",
+        path="/app/orgs/{org_id}/teams/{team_id}/week",
+        min_role="admin",
+        ids_for_a=lambda world: {"team_id": str(world.week_team_a_id)},
+        body_for_a=lambda world: None,
+        outsider_status=404,
+        team_member_status=403,
+    ),
+    RouteCase(
+        method="GET",
+        path="/app/orgs/{org_id}/teams/{team_id}/history",
+        min_role="admin",
+        ids_for_a=lambda world: {"team_id": str(world.week_team_a_id)},
+        body_for_a=lambda world: None,
         outsider_status=404,
         team_member_status=403,
     ),

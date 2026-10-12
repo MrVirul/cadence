@@ -95,6 +95,28 @@ async def _make_world(session_factory) -> World:
             )
         await db.flush()
 
+        # ``week_team_a`` exists so the week/history matrix legs can exercise a
+        # teammate who is NOT the lead: here ``team_member`` is a plain member
+        # (lead: ``target``) and ``member`` is deliberately left out, so the
+        # teammate leg is 403 and the outsider leg is 404. ``team_a`` cannot
+        # play this role because ``team_member`` leads it (would return 200).
+        week_team_a = Team(
+            org_id=org_a.id,
+            name="Week Team",
+            lead_membership_id=memberships_a["target"].id,
+        )
+        db.add(week_team_a)
+        await db.flush()
+        for membership in (memberships_a["team_member"], memberships_a["target"]):
+            db.add(
+                TeamMember(
+                    org_id=org_a.id,
+                    team_id=week_team_a.id,
+                    membership_id=membership.id,
+                )
+            )
+        await db.flush()
+
         invite = Invite(
             org_id=org_a.id,
             token=token_urlsafe(32),
@@ -196,6 +218,7 @@ async def _make_world(session_factory) -> World:
             team_a_id=team_a.id,
             team_member_a_token=_token(team_member_a),
             team_member_a_membership_id=memberships_a["team_member"].id,
+            week_team_a_id=week_team_a.id,
             plan_team_a_id=plan_team_a.id,
             draft_plan_id=draft_plan.id,
             draft_task_id=draft_task.id,
