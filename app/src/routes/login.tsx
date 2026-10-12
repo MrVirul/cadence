@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +6,14 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 import { login } from "@/api/endpoints/auth/auth";
+import { useUser } from "@/contexts/user-context";
 import { ApiError } from "@/lib/api-client";
+import {
+  getApiErrorCode,
+  getApiErrorMessage,
+  parseValidationErrors,
+} from "@/lib/api-errors";
+import { sanitizeRedirectPath } from "@/lib/routes";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,33 +33,39 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export const Route = createFileRoute("/login")({ component: Login });
+export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+    redirect:
+      typeof search["redirect"] === "string" ? search["redirect"] : undefined,
+  }),
+  component: Login,
+});
 
 function Login() {
   const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const { refetch } = useUser();
+  const { redirect } = Route.useSearch();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
-    // Validate a field only after it's blurred once, then re-validate live as
-    // the user corrects it — so errors never flash while still typing.
     mode: "onTouched",
   });
 
   const loginMutation = useMutation({
+    meta: { skipGlobalErrorToast: true },
     mutationFn: (data: LoginFormData) => login(data),
-    onSuccess: () => {
+    onSuccess: async () => {
       setLoginError("");
-      // Clear cached data so no prior session leaks into the new one.
       queryClient.clear();
-      navigate({ to: "/" });
+      await refetch();
+      const target = sanitizeRedirectPath(redirect);
+      await router.navigate({ href: target });
     },
     onError: (error: unknown) => {
-      // Non-2xx responses arrive as ApiError; network failures (no response)
-      // arrive as the native fetch TypeError.
       if (!(error instanceof ApiError)) {
         setLoginError(
           "Network error. Please check your connection and try again."
@@ -60,12 +73,30 @@ function Login() {
         return;
       }
 
-      if (error.status === 401) {
+      const code = getApiErrorCode(error);
+      if (error.status === 401 || code === "unauthorized") {
         setLoginError("Incorrect email or password.");
-      } else if (error.status === 422) {
-        setLoginError("Please check your credentials and try again.");
+      } else if (error.status === 422 || code === "validation_error") {
+        const { fieldErrors, generalMessage } = parseValidationErrors(error);
+        if (fieldErrors["email"]) {
+          form.setError("email", {
+            type: "server",
+            message: fieldErrors["email"],
+          });
+        }
+        if (fieldErrors["password"]) {
+          form.setError("password", {
+            type: "server",
+            message: fieldErrors["password"],
+          });
+        }
+        setLoginError(
+          generalMessage ?? "Please check your credentials and try again."
+        );
       } else {
-        setLoginError("Login failed. Please try again.");
+        setLoginError(
+          getApiErrorMessage(error, "Login failed. Please try again.")
+        );
       }
     },
   });
@@ -76,7 +107,7 @@ function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4 sm:p-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-6 text-center">
           <Logo className="justify-center" />
@@ -107,6 +138,7 @@ function Login() {
                           placeholder="you@example.com"
                           className="h-11 pl-9"
                           autoComplete="email"
+                          autoFocus
                           {...field}
                         />
                       </div>
@@ -155,7 +187,10 @@ function Login() {
               />
 
               {loginError && (
-                <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-center text-sm text-destructive">
+                <div
+                  role="alert"
+                  className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-center text-sm text-destructive"
+                >
                   {loginError}
                 </div>
               )}
@@ -163,7 +198,7 @@ function Login() {
               <Button
                 type="submit"
                 className="h-11 w-full text-sm"
-                disabled={loginMutation.isPending || !form.formState.isValid}
+                disabled={loginMutation.isPending}
               >
                 <LogIn className="size-4" />
                 {loginMutation.isPending ? "Signing in..." : "Sign in"}
@@ -172,8 +207,14 @@ function Login() {
           </Form>
         </div>
 
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          Trouble signing in? Contact your administrator.
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          New to Cadence?{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Create an account
+          </Link>
         </p>
       </div>
     </div>
