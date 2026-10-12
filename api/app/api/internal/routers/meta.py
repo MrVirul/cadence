@@ -46,11 +46,11 @@ async def auth(
     )
     user = result.scalars().first()
 
-    # Only admins may authenticate against the internal surface. Non-admins get the
-    # same generic error as bad credentials so account state isn't disclosed.
+    # Only platform staff may authenticate against the internal surface. Non-staff get
+    # the same generic error as bad credentials so account state isn't disclosed.
     if (
         user
-        and user.is_admin
+        and user.is_platform_staff
         and user.is_active
         and user.password is not None
         and verify_password(auth_request.password, user.password)

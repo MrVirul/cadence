@@ -64,7 +64,7 @@ async def user_deactivate(
         user_id, staff=current_user, reason=data.reason
     )
     await session.commit()
-    return InternalUserResponse.model_validate(user)
+    return InternalUserResponse(**user)
 
 
 @router.post("/users/{user_id}/reactivate", tags=["users"])
@@ -75,7 +75,7 @@ async def user_reactivate(
 ) -> InternalUserResponse:
     user = await InternalUserService(session).reactivate(user_id, staff=current_user)
     await session.commit()
-    return InternalUserResponse.model_validate(user)
+    return InternalUserResponse(**user)
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED, tags=["users"])

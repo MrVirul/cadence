@@ -447,6 +447,34 @@ Content-Type: application/json
 POST /logout
 # Returns: 200 OK with {"message": "Successfully logged out"}
 
+** List organizations
+GET /orgs?q=&limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; each item has counts and suspension metadata (no plan/task text)
+# Requires: Internal authentication (platform staff)
+
+** Get organization detail
+GET /orgs/{{(verb-var org-id)}}
+# Returns: 200 OK with organization counts and members [{email, name, role}] (no plan/task text)
+# Errors: 404 not_found
+# Requires: Internal authentication (platform staff)
+
+** Suspend organization
+POST /orgs/{{(verb-var org-id)}}/suspend
+Content-Type: application/json
+# Returns: 200 OK with updated organization (idempotent on repeat; writes one staff_actions row on change)
+# Errors: 404 not_found, 422 validation_error (reason 3-500 chars)
+# Requires: Internal authentication (platform staff)
+
+{
+  "reason": "Billing hold after support escalation"
+}
+
+** Reinstate organization
+POST /orgs/{{(verb-var org-id)}}/reinstate
+# Returns: 200 OK with updated organization (idempotent on repeat; writes one staff_actions row on change)
+# Errors: 404 not_found
+# Requires: Internal authentication (platform staff)
+
 ** Get current internal user
 GET /users/self
 # Returns: 200 OK with internal user details
@@ -454,9 +482,32 @@ GET /users/self
 # token's user is not is_admin)
 
 ** List users
-GET /users?limit=50&offset=0
-# Returns: 200 OK with {items, total, limit, offset}
-# Query: limit (1-100, default 50), offset (>=0, default 0)
+GET /users?q=&limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; each user includes orgs [{id, name, role}]
+# Query: q (optional search on email/name), limit (1-100, default 50), offset (>=0, default 0)
+# Requires: Internal authentication
+
+** Get user detail
+GET /users/{{(verb-var user-id)}}
+# Returns: 200 OK with user details and orgs [{id, name, role}]
+# Errors: 404 not_found
+# Requires: Internal authentication
+
+** Deactivate user
+POST /users/{{(verb-var user-id)}}/deactivate
+Content-Type: application/json
+# Returns: 200 OK with updated user (idempotent on repeat; writes one staff_actions row on change)
+# Errors: 403 forbidden (cannot deactivate self or another platform staff user), 404 not_found, 422 validation_error
+# Requires: Internal authentication
+
+{
+  "reason": "Account rotation requested by security"
+}
+
+** Reactivate user
+POST /users/{{(verb-var user-id)}}/reactivate
+# Returns: 200 OK with updated user (idempotent on repeat; writes one staff_actions row on change)
+# Errors: 404 not_found
 # Requires: Internal authentication
 
 ** Create user
@@ -502,4 +553,21 @@ Content-Type: application/json
 DELETE /users/{{(verb-var user-id)}}
 # Returns: 204 No Content (row hard-deleted)
 # Returns: 404 if not found
+# Requires: Internal authentication
+
+** List per-organization AI usage
+GET /ai-usage?from=2026-09-12&to=2026-10-12&limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; each row has {org_id, org_name, calls, failures, rate_limited, p50_latency_ms, avg_latency_ms, input_tokens, output_tokens}
+# Errors: 422 validation_error (from > to or window > 90 days)
+# Requires: Internal authentication
+
+** Get daily AI usage for an organization
+GET /ai-usage/{{(verb-var org-id)}}/daily?from=2026-09-12&to=2026-10-12
+# Returns: 200 OK with {days: [{date, calls, failures, rate_limited}]} (zero-filled for empty days)
+# Errors: 404 not_found, 422 validation_error
+# Requires: Internal authentication
+
+** List staff action audit log
+GET /audit-log?limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset} newest first, including staff_email and target_name
 # Requires: Internal authentication

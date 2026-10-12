@@ -7,7 +7,7 @@ from app.exceptions import APIException
 from app.models import User
 from app.security import JWT_AUDIENCE_INTERNAL
 
-http_admin_required_exception = APIException(
+http_staff_only_exception = APIException(
     status_code=status.HTTP_403_FORBIDDEN,
     code="staff_only",
     message="Staff privileges required",
@@ -24,10 +24,10 @@ async def get_current_internal_user(
     user: Annotated[User, Depends(get_current_http_user)],
 ) -> User:
     # Token audience already restricts callers to the internal surface; the flag is
-    # a second gate so a non-admin who somehow holds an internal-audience token
+    # a second gate so a non-staff user who somehow holds an internal-audience token
     # (e.g. a stale grant) is still refused.
     if not user.is_platform_staff:
-        raise http_admin_required_exception
+        raise http_staff_only_exception
     return user
 
 

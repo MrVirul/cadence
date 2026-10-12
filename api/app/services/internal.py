@@ -72,7 +72,7 @@ def _user_payload(user: User) -> dict[str, Any]:
         "last_name": user.last_name,
         "name": user.name,
         "email": user.email,
-        "is_admin": user.is_admin,
+        "is_admin": user.is_platform_staff,
         "is_active": user.is_active,
     }
 
@@ -262,49 +262,51 @@ class InternalUserService:
         orgs_by_user = await self._orgs_by_user([user.id])
         return {**_user_payload(user), "orgs": orgs_by_user.get(user.id, [])}
 
-    async def deactivate(self, user_id: uuid.UUID, *, staff: User, reason: str) -> User:
+    async def deactivate(
+        self, user_id: uuid.UUID, *, staff: User, reason: str
+    ) -> dict[str, Any]:
         """Deactivate a user. Staff cannot deactivate themselves or another staffer.
 
         Idempotent for an already-inactive user (no extra audit row). A live
         token stops working immediately because ``is_active`` is read from the DB
         on every request.
         """
-        target = await self._get_or_404(user_id)
+        target = await self._get_for_update(user_id)
         if target.id == staff.id:
             raise ForbiddenException("You cannot deactivate your own account")
         if target.is_platform_staff:
             raise ForbiddenException("Staff accounts cannot be deactivated here")
-        if not target.is_active:
-            return target
-        target.is_active = False
-        self.session.add(
-            StaffAction(
-                staff_user_id=staff.id,
-                action="user_deactivated",
-                target_type="user",
-                target_id=target.id,
-                reason=reason,
-            )
-        )
-        await self.session.flush()
-        return target
-
-    async def reactivate(self, user_id: uuid.UUID, *, staff: User) -> User:
-        """Reactivate a user. Idempotent for an already-active user."""
-        target = await self._get_or_404(user_id)
         if target.is_active:
-            return target
-        target.is_active = True
-        self.session.add(
-            StaffAction(
-                staff_user_id=staff.id,
-                action="user_reactivated",
-                target_type="user",
-                target_id=target.id,
+            target.is_active = False
+            self.session.add(
+                StaffAction(
+                    staff_user_id=staff.id,
+                    action="user_deactivated",
+                    target_type="user",
+                    target_id=target.id,
+                    reason=reason,
+                )
             )
-        )
-        await self.session.flush()
-        return target
+            await self.session.flush()
+        orgs_by_user = await self._orgs_by_user([target.id])
+        return {**_user_payload(target), "orgs": orgs_by_user.get(target.id, [])}
+
+    async def reactivate(self, user_id: uuid.UUID, *, staff: User) -> dict[str, Any]:
+        """Reactivate a user. Idempotent for an already-active user."""
+        target = await self._get_for_update(user_id)
+        if not target.is_active:
+            target.is_active = True
+            self.session.add(
+                StaffAction(
+                    staff_user_id=staff.id,
+                    action="user_reactivated",
+                    target_type="user",
+                    target_id=target.id,
+                )
+            )
+            await self.session.flush()
+        orgs_by_user = await self._orgs_by_user([target.id])
+        return {**_user_payload(target), "orgs": orgs_by_user.get(target.id, [])}
 
     async def _orgs_by_user(
         self, user_ids: list[uuid.UUID]
@@ -333,6 +335,14 @@ class InternalUserService:
 
     async def _get_or_404(self, user_id: uuid.UUID) -> User:
         user = await self.session.scalar(select(User).where(User.id == user_id))
+        if user is None:
+            raise ResourceNotFoundException("User not found")
+        return user
+
+    async def _get_for_update(self, user_id: uuid.UUID) -> User:
+        user = await self.session.scalar(
+            select(User).where(User.id == user_id).with_for_update()
+        )
         if user is None:
             raise ResourceNotFoundException("User not found")
         return user
@@ -420,7 +430,7 @@ class InternalAiUsageService:
         if org is None:
             raise ResourceNotFoundException("Organization not found")
         start, end = self.window(date_from, date_to)
-        day = func.date_trunc("day", AiCall.created_at)
+        day = func.date_trunc("day", func.timezone("UTC", AiCall.created_at))
         rows = (
             await self.session.execute(
                 select(
