@@ -79,6 +79,74 @@ POST /invites/TOKEN/accept
 # Errors: 404 invite_invalid, 409 conflict (already a member)
 # Requires: Authentication
 
+** Get org (org-scoped)
+GET /orgs/ORG_ID
+# Returns: 200 OK with the org
+# Requires: a member of the org; 404 not_found for non-members AND unknown
+# orgs (identical body, org existence is never disclosed)
+
+** Rename org (org-scoped)
+PATCH /orgs/ORG_ID
+Content-Type: application/json
+# Returns: 200 OK with the renamed org (slug is immutable)
+# Requires: admin or owner; 403 forbidden otherwise
+# Errors: 422 validation_error (extra/forbidden fields like role, org_id)
+
+{
+  "name": "Northwind Labs 2"
+}
+
+** List members (org-scoped)
+GET /orgs/ORG_ID/members?limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; items are
+# {membership_id, user: {id, name, email}, role, created_at}
+# Requires: admin or owner
+
+** Change member role (org-scoped)
+PATCH /orgs/ORG_ID/members/MEMBERSHIP_ID
+Content-Type: application/json
+# Returns: 200 OK with the updated membership
+# Errors: 403 forbidden (admin touching an owner), 409 last_owner (last owner
+# can never be demoted), 404 not_found (member not in this org)
+# Requires: admin or owner
+
+{
+  "role": "admin"
+}
+
+** Remove member (org-scoped)
+DELETE /orgs/ORG_ID/members/MEMBERSHIP_ID
+# Returns: 204 No Content (team_members rows and plans cascade; team lead links
+# are cleared)
+# Errors: 403 forbidden (admin touching an owner), 409 last_owner,
+# 404 not_found (member not in this org)
+# Requires: admin or owner
+
+** Create invite (org-scoped)
+POST /orgs/ORG_ID/invites
+Content-Type: application/json
+# Returns: 201 Created with {id, token, role, expires_at, url}
+# Errors: 422 validation_error (role must be admin|member — never owner),
+# 403 forbidden
+# Requires: admin or owner
+
+{
+  "role": "member",
+  "expires_in_days": 7
+}
+
+** List valid invites (org-scoped)
+GET /orgs/ORG_ID/invites?limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; only invites that still
+# work (unused, unrevoked, unexpired) are listed
+# Requires: admin or owner
+
+** Revoke invite (org-scoped)
+DELETE /orgs/ORG_ID/invites/INVITE_ID
+# Returns: 204 No Content (idempotent)
+# Returns: 404 not_found (invite not in this org)
+# Requires: admin or owner
+
 * Internal API                                                            :verb:
 Template http://localhost:8000/internal
 # Access-Token: Bearer TOKEN
