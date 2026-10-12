@@ -223,6 +223,129 @@ Content-Type: application/json
   "membership_id": "MEMBERSHIP_ID"
 }
 
+** List plans (org-scoped)
+GET /orgs/ORG_ID/plans?week=YYYY-MM-DD&mine=true&limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; items are
+# {id, week_start, status, team_id, author, tasks_done, tasks_total, shipped,
+# submitted_at, decided_at, created_at, updated_at}
+# Note: a plain member sees only their own plans; a team lead also sees their
+# team's plans; admin/owner see the whole org. `week=` must be any valid date
+# (no Monday enforcement on the filter); `mine=true` narrows to the caller.
+# Requires: a member of the org
+
+** Create plan (own draft, org-scoped)
+POST /orgs/ORG_ID/plans
+Content-Type: application/json
+# Returns: 201 Created with {id, week_start, status, team_id, author, tasks[],
+# events[], ...}
+# Errors: 403 forbidden (team is not the author's — admin who can read the team
+# but is not on it), 404 not_found (team not in this org, or a plain member
+# using a team they do not belong to — identical to a missing team),
+# 409 conflict (a plan already exists for that membership+week),
+# 422 validation_error (week_start not a Monday, past week, >4 weeks ahead,
+# >1 main task, >5 sub-goals, >5 gtm goals)
+# Requires: a member of the org
+
+{
+  "week_start": "2026-10-12",
+  "team_id": "TEAM_ID",
+  "tasks": [
+    {"kind": "main", "title": "Checkout handles expired cards", "why": "Users are blocked at payment"},
+    {"kind": "sub_goal", "title": "Write the replay test"},
+    {"kind": "gtm", "title": "Ship a changelog entry"}
+  ]
+}
+
+** Get plan (org-scoped)
+GET /orgs/ORG_ID/plans/PLAN_ID
+# Returns: 200 OK with the plan detail: {id, week_start, status, team_id,
+# author, submitted_at, decided_at, decided_by, decision_comment, shipped,
+# closed_at, created_at, updated_at, tasks[], events[]}
+# Note: read access = author, lead of plan.team_id, or org admin/owner; anyone
+# else gets 404 not_found (identical to a missing plan)
+# Requires: a member of the org
+
+** Replace plan content (org-scoped)
+PUT /orgs/ORG_ID/plans/PLAN_ID
+Content-Type: application/json
+# Returns: 200 OK with the updated plan detail
+# Note: draft only, author only. Tasks are matched by id (ids on the plan but
+# absent from the body are deleted; new tasks are sent without id); a new
+# team_id must be a team the author belongs to.
+# Errors: 404 not_found (no read access), 403 forbidden (can read, not the
+# author), 409 invalid_transition (not a draft), 422 validation_error (limits)
+# Requires: a member of the org
+
+{
+  "team_id": "TEAM_ID",
+  "tasks": [
+    {"id": "TASK_ID", "kind": "main", "title": "Checkout handles expired cards", "why": "Users are blocked at payment"},
+    {"kind": "gtm", "title": "Ship a changelog entry"}
+  ]
+}
+
+** Tick a task (org-scoped)
+PATCH /orgs/ORG_ID/tasks/TASK_ID
+Content-Type: application/json
+# Returns: 200 OK with the task {id, kind, title, why, status, position, done_at}
+# Note: author only, and the parent plan must be draft or approved (todo ⇄ done)
+# Errors: 404 not_found (no read access to the plan), 403 forbidden (can read,
+# not the author), 409 invalid_transition (plan done/submitted)
+# Requires: a member of the org
+
+{
+  "status": "done"
+}
+
+** Submit plan (org-scoped)
+POST /orgs/ORG_ID/plans/PLAN_ID/submit
+# Returns: 200 OK with the plan (status -> submitted, submitted_at set)
+# Errors: 403 forbidden (can read, not the author; or author left the team),
+# 404 not_found (no read access), 409 invalid_transition,
+# 422 validation_error (no/several main tasks, main without a why, past week)
+# Requires: the plan's author
+
+** Withdraw plan (org-scoped)
+POST /orgs/ORG_ID/plans/PLAN_ID/withdraw
+# Returns: 200 OK with the plan (submitted -> draft, submitted_at cleared)
+# Errors: 403 forbidden (can read, not the author), 404 not_found,
+# 409 invalid_transition
+# Requires: the plan's author
+
+** Approve plan (org-scoped)
+POST /orgs/ORG_ID/plans/PLAN_ID/approve
+# Returns: 200 OK with the plan (submitted -> approved, decided_by set,
+# decision_comment cleared)
+# Errors: 403 forbidden (not an eligible approver, incl. the author when another
+# approver exists), 404 not_found (no read access), 409 invalid_transition
+# Requires: the lead of plan.team_id, an org admin, or an org owner. The author
+# may self-approve ONLY when no other eligible approver exists (recorded as
+# self_approved on the event).
+
+** Send plan back (org-scoped)
+POST /orgs/ORG_ID/plans/PLAN_ID/send-back
+Content-Type: application/json
+# Returns: 200 OK with the plan (submitted -> draft, decision_comment set)
+# Errors: 403 forbidden (not an eligible approver), 404 not_found,
+# 409 invalid_transition, 422 validation_error (empty comment)
+# Requires: same as approve
+
+{
+  "comment": "The main task describes work, not a checkable result — reword it."
+}
+
+** Close plan (org-scoped)
+POST /orgs/ORG_ID/plans/PLAN_ID/close
+Content-Type: application/json
+# Returns: 200 OK with the plan (approved -> done, closed_at set, shipped set)
+# Errors: 403 forbidden (can read, not the author), 404 not_found,
+# 409 invalid_transition (not approved), 422 validation_error
+# Requires: the plan's author
+
+{
+  "shipped": true
+}
+
 * Internal API                                                            :verb:
 Template http://localhost:8000/internal
 # Access-Token: Bearer TOKEN

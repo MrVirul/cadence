@@ -62,3 +62,12 @@ Launchbase folder-level `AGENTS.md` disagree, the **root brief wins**.
 - 2026-10-12 — Team write routes answer **404** to an org member who is not on the team and **403** to a member of the team who is not an admin/owner; team reads follow the same read-access split (`GET .../teams/{id}` is 404 for a non-member, 200 for a teammate or admin) — consistent with the global 404-vs-403 rule (no-read-access → 404, can-read-but-cannot-act → 403).
 - 2026-10-12 — Added `ValidationException` (422 `validation_error`) for service-level business-rule rejections that are not Pydantic schema errors (e.g. "team lead must be a member") — keeps one error code for all 422s so the UI switches once.
 - 2026-10-12 — Test DB schema is dropped and recreated per test (`conftest.test_engine`), not just `create_all` — the Postgres container is session-scoped, so committed rows otherwise persist across tests and Faker's small email space collides on `users_email_key` (a flaky 500 that the larger team suite made likely).
+
+## Phase 3.5 — plans & tasks
+
+- 2026-10-12 — `team_id` not-a-member on plan **create** is read-then-act: an admin/owner (can read the team) gets `403`, a plain member (cannot read the team) gets `404` — one consistent rule instead of a leaked "the team exists" signal.
+- 2026-10-12 — A plan **submitted** after its author left the team answers `403` (the author can always read their own plan; "left the team" is an act-level constraint, not a read-level one) — a 404 would wrongly tell the author their plan vanished.
+- 2026-10-12 — The `?week=` **filter** on `GET /plans` accepts any valid date (no Monday enforcement); only plan **creation/submission** enforces "Monday within 0–4 weeks ahead" — the filter is a list lookup, not a state transition.
+- 2026-10-12 — Task ticking is read-then-act too: a teammate who cannot read the plan gets `404`, a reader who is not the author (e.g. an org owner) gets `403` — matches the global split and the test now asserts both.
+- 2026-10-12 — The injected "today" dependency (`get_today`) is overridden on the **mounted `/app` sub-application** in tests (`app.main.app_api`), not the root app — the customer routes live on the sub-app, so parent-app overrides silently no-op (conftest's `get_db` override only worked by accident via the module-global engine swap).
+- 2026-10-12 — `decided_by` is modelled as a `PlanPerson` (membership + user) rather than a raw id; `decision_comment` is cleared on **approve** (a fresh approval is not a lingering "sent back" reason) and set to the required comment on **send-back**.
