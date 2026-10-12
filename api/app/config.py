@@ -1,5 +1,6 @@
 from typing import Literal
 
+import email_validator
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -58,3 +59,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Demo accounts use the reserved `.test` TLD (root AGENTS.md §10), which is a
+# valid special-use domain but `email-validator` rejects unless test mode is on.
+# Enable it so demo logins work; this is not production, so keep the check
+# strict only in production.
+email_validator.TEST_ENVIRONMENT = not settings.is_production

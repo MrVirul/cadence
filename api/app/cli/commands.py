@@ -11,6 +11,12 @@ from app.cli.schemas import UserCreate
 from app.database import AsyncSessionLocal, async_engine
 from app.models import User
 from app.security import hash_password
+from app.seed import (
+    DEMO_PASSWORD,
+    render_logins_table,
+    seed_demo,
+    write_demo_logins,
+)
 
 
 class AsyncTyper(Typer):
@@ -100,3 +106,35 @@ async def create_user(
     print(f"{'Admin' if admin else 'User'} created: ", user.id)
     if generated:
         print("Generated password: ", password)
+
+
+@cli.command("seed-demo")
+async def seed_demo_command(
+    reset: bool = Option(
+        False,
+        "--reset",
+        help="Delete demo orgs/users and recreate them. Never touches other rows.",
+    ),
+):
+    """Seed the deterministic demo dataset (AGENTS.md §10).
+
+    Without --reset this is idempotent: if the demo orgs already exist it prints
+    a notice and changes nothing. With --reset it deletes only the demo orgs and
+    users (by slug/email) and recreates the full dataset.
+    """
+    result = await seed_demo(session, reset=reset)
+    if result.created:
+        print(
+            "Seeded: "
+            f"{result.orgs} orgs, {result.users} users, {result.teams} teams, "
+            f"{result.plans} plans, {result.ai_calls} ai_calls."
+        )
+    else:
+        print("Demo data already exists; nothing was changed. Use --reset to rebuild.")
+
+    table = render_logins_table(result.logins)
+    print()
+    print(f"Demo logins (password: {DEMO_PASSWORD})")
+    print(table)
+    path = write_demo_logins(result.logins)
+    print(f"\nWrote {path}")
