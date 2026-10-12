@@ -1,6 +1,6 @@
 from fastapi.routing import APIRouter
 
-from .routers import auth, invites, members, meta, orgs, plans, teams
+from .routers import ai, auth, invites, members, meta, orgs, plans, teams
 
 router = APIRouter()
 
@@ -11,3 +11,4 @@ router.include_router(members.router)
 router.include_router(invites.router)
 router.include_router(teams.router)
 router.include_router(plans.router)
+router.include_router(ai.router)

@@ -24,6 +24,16 @@ class Settings(BaseSettings):
     # API (e.g. `{APP_URL}/invite/{token}`).
     APP_URL: str = "http://localhost:3001"
 
+    # Pydantic AI / Google Gemini (plan review + draft-from-notes). Read ONLY on
+    # the server; the key is never returned by an endpoint and never logged.
+    # Empty key => the AI features are disabled and return 503 (planning still
+    # works). See `app/ai/`.
+    GOOGLE_API_KEY: str = ""
+    AI_MODEL: str = "gemini-3.5-flash-lite"
+    AI_TIMEOUT_SECONDS: float = 20
+    AI_LIMIT_PER_USER_PER_MINUTE: int = 6
+    AI_LIMIT_PER_ORG_PER_DAY: int = 150
+
     # JWT Token settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     JWT_ALGORITHM: str = "HS256"

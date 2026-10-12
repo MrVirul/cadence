@@ -52,6 +52,7 @@ app_api = FastAPI(
         {"name": "teams", "description": "Teams and team leads"},
         {"name": "plans", "description": "Weekly plans and the plan state machine"},
         {"name": "tasks", "description": "Plan tasks"},
+        {"name": "ai", "description": "AI plan review and draft-from-notes"},
     ],
     openapi_url=openapi_url,
     docs_url=docs_url,

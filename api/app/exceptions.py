@@ -151,3 +151,71 @@ class LastOwnerException(APIException):
             code="last_owner",
             message="An organization must always have at least one owner",
         )
+
+
+class AiUnavailableException(APIException):
+    """No API key configured: the AI features are disabled, planning still works."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            code="ai_unavailable",
+            message=(
+                "The AI review is not configured on this server. "
+                "You can keep planning and submit without a review."
+            ),
+        )
+
+
+class AiRateLimitedException(APIException):
+    """Local or upstream rate limit; carries `Retry-After` (docs/API.md)."""
+
+    def __init__(self, retry_after: int) -> None:
+        super().__init__(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            code="ai_rate_limited",
+            message=(
+                "The AI review is rate limited right now. Your plan is safe. "
+                "You can submit without a review, or try again in a minute."
+            ),
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+class AiTimeoutException(APIException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            code="ai_timeout",
+            message=(
+                "The AI review took too long and timed out. "
+                "Try again, or keep planning without a review."
+            ),
+        )
+
+
+class AiBadOutputException(APIException):
+    """The model returned output that failed validation after retries."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            code="ai_bad_output",
+            message=(
+                "The AI returned an unreadable review. "
+                "Try again, or keep planning without a review."
+            ),
+        )
+
+
+class AiErrorException(APIException):
+    """Any other AI failure; provider messages and the API key are never leaked."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            code="ai_error",
+            message=(
+                "The AI review failed. Try again, or keep planning without a review."
+            ),
+        )
