@@ -1,16 +1,17 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import type { UserResponse } from "@/api/model";
+import type { MeMembership, UserResponse } from "@/api/model";
 
 type User = UserResponse;
 
 interface UserContextType {
   user: User | null;
+  memberships: MeMembership[];
   isLoading: boolean;
   isAuthenticated: boolean;
   isUnauthenticated: boolean;
   error: unknown;
-  refetch: () => void;
+  refetch: () => Promise<unknown>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -18,6 +19,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const {
     user,
+    memberships,
     isLoading,
     isAuthenticated,
     isUnauthenticated,
@@ -29,6 +31,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     <UserContext.Provider
       value={{
         user: user || null,
+        memberships,
         isLoading,
         isAuthenticated,
         isUnauthenticated,

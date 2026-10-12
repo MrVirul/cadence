@@ -1,7 +1,8 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMe } from "@/api/endpoints/auth/auth";
-import { PUBLIC_ROUTES } from "@/lib/routes";
+import { getUiErrorDecision } from "@/lib/api-errors";
+import { isPublicRoute } from "@/lib/routes";
 
 // Resolves the current session from GET /me (authenticated via the httponly
 // access_token cookie) and redirects to /login when a protected route is hit
@@ -25,17 +26,15 @@ export function useAuth() {
   });
 
   const user = me?.user;
+  const memberships = me?.memberships ?? [];
 
   useEffect(() => {
     if (!queryLoading) {
       if (error) {
-        // Only redirect to login from protected routes; public routes such
-        // as /login must render without a session.
-        const isMetaRoute = PUBLIC_ROUTES.some((route) =>
-          pathname.startsWith(route)
-        );
-
-        if (!isMetaRoute) {
+        const decision = getUiErrorDecision(error);
+        // Only redirect to login from protected routes on invalid_token or credentials_required;
+        // public routes (/login, /signup, /invite/<token>) render without a session.
+        if (decision === "redirect_login" && !isPublicRoute(pathname)) {
           navigate({ to: "/login", replace: true });
           return undefined;
         }
@@ -55,6 +54,7 @@ export function useAuth() {
 
   return {
     user,
+    memberships,
     isLoading,
     error,
     isAuthenticated,
