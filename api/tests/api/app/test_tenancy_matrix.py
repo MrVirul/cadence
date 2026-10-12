@@ -25,6 +25,8 @@ from app.models import (
     Invite,
     Membership,
     Organization,
+    Plan,
+    Task,
     Team,
     TeamMember,
     User,
@@ -103,6 +105,66 @@ async def _make_world(session_factory) -> World:
         db.add(invite)
         await db.flush()
 
+        # Plan fixtures. ``plan_team_a`` is a team ``member_a`` belongs to
+        # (lead: ``team_member_a``), so ``member_a`` may author plans in it.
+        # One plan per week: draft (this week), submitted (last week) and
+        # approved (two weeks ago).
+        plan_team_a = Team(
+            org_id=org_a.id,
+            name="Plans Team",
+            lead_membership_id=memberships_a["team_member"].id,
+        )
+        db.add(plan_team_a)
+        await db.flush()
+        for membership in (memberships_a["team_member"], memberships_a["member"]):
+            db.add(
+                TeamMember(
+                    org_id=org_a.id,
+                    team_id=plan_team_a.id,
+                    membership_id=membership.id,
+                )
+            )
+        await db.flush()
+
+        today = datetime.now(UTC).date()
+        this_week = today - timedelta(days=today.weekday())
+        draft_plan = Plan(
+            org_id=org_a.id,
+            membership_id=memberships_a["member"].id,
+            team_id=plan_team_a.id,
+            week_start=this_week,
+            status="draft",
+        )
+        submitted_plan = Plan(
+            org_id=org_a.id,
+            membership_id=memberships_a["member"].id,
+            team_id=plan_team_a.id,
+            week_start=this_week - timedelta(weeks=1),
+            status="submitted",
+            submitted_at=datetime.now(UTC),
+        )
+        approved_plan = Plan(
+            org_id=org_a.id,
+            membership_id=memberships_a["member"].id,
+            team_id=plan_team_a.id,
+            week_start=this_week - timedelta(weeks=2),
+            status="approved",
+            submitted_at=datetime.now(UTC),
+            decided_at=datetime.now(UTC),
+            decided_by_membership_id=memberships_a["team_member"].id,
+        )
+        db.add_all([draft_plan, submitted_plan, approved_plan])
+        await db.flush()
+        draft_task = Task(
+            org_id=org_a.id,
+            plan_id=draft_plan.id,
+            kind="main",
+            title="Ship the weekly plan",
+            why="Teams need a shared commitment",
+        )
+        db.add(draft_task)
+        await db.flush()
+
         org_b = Organization(name="Org B", slug=f"b-{uuid.uuid4().hex[:12]}")
         db.add(org_b)
         await db.flush()
@@ -134,6 +196,12 @@ async def _make_world(session_factory) -> World:
             team_a_id=team_a.id,
             team_member_a_token=_token(team_member_a),
             team_member_a_membership_id=memberships_a["team_member"].id,
+            plan_team_a_id=plan_team_a.id,
+            draft_plan_id=draft_plan.id,
+            draft_task_id=draft_task.id,
+            submitted_plan_id=submitted_plan.id,
+            approved_plan_id=approved_plan.id,
+            next_week_start=(this_week + timedelta(weeks=1)).isoformat(),
         )
 
 

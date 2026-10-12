@@ -41,6 +41,12 @@ class World:
         team_a_id: uuid.UUID,
         team_member_a_token: str,
         team_member_a_membership_id: uuid.UUID,
+        plan_team_a_id: uuid.UUID,
+        draft_plan_id: uuid.UUID,
+        draft_task_id: uuid.UUID,
+        submitted_plan_id: uuid.UUID,
+        approved_plan_id: uuid.UUID,
+        next_week_start: str,
     ) -> None:
         self.org_a_id = org_a_id
         self.org_b_id = org_b_id
@@ -59,6 +65,16 @@ class World:
         self.team_a_id = team_a_id
         self.team_member_a_token = team_member_a_token
         self.team_member_a_membership_id = team_member_a_membership_id
+        # Plan fixtures. ``plan_team_a`` is ``member_a``'s team (lead:
+        # ``team_member_a``); ``member_a`` authors a draft, a submitted and an
+        # approved plan in it, one per week. ``next_week_start`` is a valid
+        # week for a fresh POST.
+        self.plan_team_a_id = plan_team_a_id
+        self.draft_plan_id = draft_plan_id
+        self.draft_task_id = draft_task_id
+        self.submitted_plan_id = submitted_plan_id
+        self.approved_plan_id = approved_plan_id
+        self.next_week_start = next_week_start
 
 
 @dataclass(frozen=True)
@@ -209,6 +225,103 @@ TENANCY_REGISTRY: list[RouteCase] = [
             "membership_id": str(world.team_member_a_membership_id)
         },
         outsider_status=404,
+        team_member_status=403,
+    ),
+    # --- Plans & tasks ---
+    # ``member_a`` authors every plan fixture in ``plan_team_a`` (lead:
+    # ``team_member_a``), so the minimum-role success leg is ``member_a`` for
+    # author-only routes and ``admin`` for approve/send-back. Where
+    # ``team_member_a`` can read but not act, ``team_member_status`` is 403.
+    RouteCase(
+        method="GET",
+        path="/app/orgs/{org_id}/plans",
+        min_role="member",
+        ids_for_a=lambda world: {},
+        body_for_a=lambda world: None,
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/plans",
+        min_role="member",
+        ids_for_a=lambda world: {},
+        body_for_a=lambda world: {
+            "week_start": world.next_week_start,
+            "team_id": str(world.plan_team_a_id),
+            "tasks": [
+                {"kind": "main", "title": "Ship the thing", "why": "Users need it"}
+            ],
+        },
+    ),
+    RouteCase(
+        method="GET",
+        path="/app/orgs/{org_id}/plans/{plan_id}",
+        min_role="member",
+        ids_for_a=lambda world: {"plan_id": str(world.draft_plan_id)},
+        body_for_a=lambda world: None,
+        team_member_status=200,
+    ),
+    RouteCase(
+        method="PUT",
+        path="/app/orgs/{org_id}/plans/{plan_id}",
+        min_role="member",
+        ids_for_a=lambda world: {"plan_id": str(world.draft_plan_id)},
+        body_for_a=lambda world: {
+            "tasks": [
+                {
+                    "kind": "main",
+                    "title": "Ship the weekly plan",
+                    "why": "Teams need a shared commitment",
+                }
+            ]
+        },
+        team_member_status=403,
+    ),
+    RouteCase(
+        method="PATCH",
+        path="/app/orgs/{org_id}/tasks/{task_id}",
+        min_role="member",
+        ids_for_a=lambda world: {"task_id": str(world.draft_task_id)},
+        body_for_a=lambda world: {"status": "done"},
+        team_member_status=403,
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/plans/{plan_id}/submit",
+        min_role="member",
+        ids_for_a=lambda world: {"plan_id": str(world.draft_plan_id)},
+        body_for_a=lambda world: None,
+        team_member_status=403,
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/plans/{plan_id}/withdraw",
+        min_role="member",
+        ids_for_a=lambda world: {"plan_id": str(world.submitted_plan_id)},
+        body_for_a=lambda world: None,
+        team_member_status=403,
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/plans/{plan_id}/approve",
+        min_role="admin",
+        ids_for_a=lambda world: {"plan_id": str(world.submitted_plan_id)},
+        body_for_a=lambda world: None,
+        outsider_status=403,
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/plans/{plan_id}/send-back",
+        min_role="admin",
+        ids_for_a=lambda world: {"plan_id": str(world.submitted_plan_id)},
+        body_for_a=lambda world: {"comment": "Tighten the scope and make it checkable"},
+        outsider_status=403,
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/plans/{plan_id}/close",
+        min_role="member",
+        ids_for_a=lambda world: {"plan_id": str(world.approved_plan_id)},
+        body_for_a=lambda world: {"shipped": True},
         team_member_status=403,
     ),
 ]
