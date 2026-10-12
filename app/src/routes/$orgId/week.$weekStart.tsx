@@ -491,7 +491,9 @@ function WeekWorkspace({
   const updatePlanMutation = useUpdatePlan();
   const submitPlanMutation = useSubmitPlan();
   const withdrawPlanMutation = useWithdrawPlan();
-  const approvePlanMutation = useApprovePlan();
+  const approvePlanMutation = useApprovePlan({
+    mutation: { meta: { skipGlobalErrorToast: true } },
+  });
   const closePlanMutation = useClosePlan();
   const tickTaskMutation = useTickTask();
 
