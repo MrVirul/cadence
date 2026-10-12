@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import ConflictException, ResourceNotFoundException
@@ -70,7 +71,15 @@ class UserService:
             is_active=is_active,
         )
         self.session.add(user)
-        await self.session.flush()
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            # A second concurrent sign-up with the same email: the pre-check
+            # above cannot see the other request's uncommitted row, so the
+            # unique constraint is the real gate. Surface as a clean 409, never
+            # a 500 (docs/API.md rule 37's sibling for sign-up).
+            await self.session.rollback()
+            raise ConflictException(f"User with email '{email}' already exists.")
         return user
 
     async def update_user(self, user_id: uuid.UUID, changes: dict[str, Any]) -> User:

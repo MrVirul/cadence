@@ -31,6 +31,12 @@ class OrganizationService:
         await self.session.flush()
         return org, membership
 
+    async def rename(self, org: Organization, name: str) -> Organization:
+        """Rename an org. The slug is immutable and derived at creation."""
+        org.name = name
+        await self.session.flush()
+        return org
+
     async def _unique_slug(self, name: str) -> str:
         base = slugify(name)
         candidate = base
