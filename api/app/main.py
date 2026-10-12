@@ -47,6 +47,7 @@ app_api = FastAPI(
         {"name": "meta", "description": "Health and service metadata"},
         {"name": "auth", "description": "Authentication and session"},
         {"name": "orgs", "description": "Organizations"},
+        {"name": "members", "description": "Organization members"},
         {"name": "invites", "description": "Invites"},
     ],
     openapi_url=openapi_url,
