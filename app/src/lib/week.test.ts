@@ -7,12 +7,16 @@ import {
   getWeekWindowStatus,
   isMondayUtc,
   latestWeekStartUtc,
-} from "./week";
+} from "./week.ts";
 
 test("currentWeekStartUtc uses UTC date even when UTC+5:30 is early Monday", () => {
   // 2026-10-12 01:30 IST is 2026-10-11 20:00 UTC (Sunday in UTC -> week of 2026-10-05)
   const earlyMondayIst = new Date("2026-10-12T01:30:00+05:30");
   assert.equal(currentWeekStartUtc(earlyMondayIst), "2026-10-05");
+
+  // 2026-10-12 02:00 IST is 2026-10-11 20:30 UTC (Sunday in UTC -> week of 2026-10-05)
+  const monday2amIst = new Date("2026-10-12T02:00:00+05:30");
+  assert.equal(currentWeekStartUtc(monday2amIst), "2026-10-05");
 
   // 2026-10-12 06:00 IST is 2026-10-12 00:30 UTC (Monday in UTC -> week of 2026-10-12)
   const mondayUtc = new Date("2026-10-12T06:00:00+05:30");
