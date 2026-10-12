@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { QueryProvider } from "@/components/QueryProvider";
 import { UserProvider } from "@/contexts/user-context";
+import { NotFound } from "@/components/guards/NotFound";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/styles.css?url";
 
@@ -24,6 +25,7 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
+  notFoundComponent: NotFound,
   shellComponent: RootDocument,
 });
 
