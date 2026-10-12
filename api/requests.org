@@ -373,6 +373,55 @@ Content-Type: application/json
   "shipped": true
 }
 
+* AI (org-scoped, stateless)                                             :verb:
+Template http://localhost:8000/app
+# Access-Token: Bearer TOKEN
+
+** Review a plan (org-scoped)
+POST /orgs/ORG_ID/ai/plan-review
+Content-Type: application/json
+# Returns: 200 OK with PlanReview {verdict: "approve"|"adjust", summary,
+# findings: [{task_ref, category, severity, problem, action, suggested_rewrite,
+# suggested_kind}]}
+# Note: STATELESS — reviews the caller's LIVE form state (no plan id, so no
+# IDOR surface) and writes nothing to the database. The plan is sent to the
+# model as untrusted data inside <plan>...</plan>. Every attempt (success or
+# failure) records one ai_calls row in its own committed session; that row
+# never contains plan, prompt or output text (metadata only).
+# Errors: 404 not_found (not a member; cross-org id), 403 org_suspended,
+# 422 validation_error (0 tasks -> NO model call, > 12 tasks, title > 200,
+# why > 500, unknown fields), 429 ai_rate_limited (local per-user/per-org limit
+# or upstream 429; Retry-After set), 502 ai_bad_output (invalid output after
+# retries) / ai_error (any other failure), 503 ai_unavailable (no key),
+# 504 ai_timeout
+# Requires: a member of the org
+
+{
+  "week_start": "2026-10-12",
+  "tasks": [
+    {"ref": "t1", "kind": "main", "title": "Checkout handles expired cards", "why": "Users are blocked at payment"},
+    {"ref": "t2", "kind": "gtm", "title": "Ship a changelog entry"}
+  ]
+}
+
+** Draft a plan from notes (org-scoped)
+POST /orgs/ORG_ID/ai/plan-draft
+Content-Type: application/json
+# Returns: 200 OK with PlanDraft {main, sub_goals[], gtm_goals[], left_out[],
+# open_questions[]}
+# Note: STATELESS — NEVER writes a plan or task; the result pre-fills the client
+# form, which the user edits and saves. Notes are untrusted data inside
+# <notes>...</notes>. Same ai_calls recording rules as plan-review.
+# Errors: 404 not_found, 403 org_suspended, 422 validation_error (empty notes,
+# notes > 4000, unknown fields), 429 ai_rate_limited, 502 ai_bad_output /
+# ai_error, 503 ai_unavailable, 504 ai_timeout
+# Requires: a member of the org
+
+{
+  "week_start": "2026-10-12",
+  "notes": "Ship checkout by Friday, add an analytics event and update the changelog."
+}
+
 * Internal API                                                            :verb:
 Template http://localhost:8000/internal
 # Access-Token: Bearer TOKEN
