@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadence Brand Mark Verification</title>
+  <style>
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      margin: 0;
+      padding: 32px;
+      background: #E2E8F0;
+      color: #0F172A;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+    .grid {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .panel {
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      width: fit-content;
+    }
+    .panel.light {
+      background: #FFFFFF;
+      color: #0F172A;
+      border: 1px solid #CBD5E1;
+    }
+    .panel.dark {
+      background: #0B1020;
+      color: #F8FAFC;
+      border: 1px solid #1E293B;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    .row:last-child {
+      margin-bottom: 0;
+    }
+    .label {
+      width: 70px;
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .img-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed rgba(128, 128, 128, 0.3);
+      padding: 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cadence Mark Verification Preview (16px, 32px, 64px, 512px)</h1>
+  <div class="grid">
+    <div class="panel light">
+      <h2>White Background (#FFFFFF)</h2>
+      <div class="row">
+        <span class="label">16 px:</span>
+        <div class="img-box"><img src="mark-16.png" width="16" height="16" alt="16px"></div>
+        <span>(Actual size: 16×16)</span>
+      </div>
+      <div class="row">
+        <span class="label">32 px:</span>
+        <div class="img-box"><img src="mark-32.png" width="32" height="32" alt="32px"></div>
+        <span>(Actual size: 32×32)</span>
+      </div>
+      <div class="row">
+        <span class="label">64 px:</span>
+        <div class="img-box"><img src="mark-64.png" width="64" height="64" alt="64px"></div>
+        <span>(Actual size: 64×64)</span>
+      </div>
+      <div class="row">
+        <span class="label">512 px:</span>
+        <div class="img-box"><img src="mark-512.png" width="256" height="256" alt="512px"></div>
+        <span>(Scaled down for preview: 256px displayed)</span>
+      </div>
+    </div>
+
+    <div class="panel dark">
+      <h2>Dark Background (#0B1020)</h2>
+      <div class="row">
+        <span class="label">16 px:</span>
+        <div class="img-box"><img src="mark-16.png" width="16" height="16" alt="16px"></div>
+        <span>(Actual size: 16×16)</span>
+      </div>
+      <div class="row">
+        <span class="label">32 px:</span>
+        <div class="img-box"><img src="mark-32.png" width="32" height="32" alt="32px"></div>
+        <span>(Actual size: 32×32)</span>
+      </div>
+      <div class="row">
+        <span class="label">64 px:</span>
+        <div class="img-box"><img src="mark-64.png" width="64" height="64" alt="64px"></div>
+        <span>(Actual size: 64×64)</span>
+      </div>
+      <div class="row">
+        <span class="label">512 px:</span>
+        <div class="img-box"><img src="mark-512.png" width="256" height="256" alt="512px"></div>
+        <span>(Scaled down for preview: 256px displayed)</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
