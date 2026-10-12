@@ -79,13 +79,13 @@ function Login() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-6 text-center">
-          <Logo className="h-9" />
+          <Logo className="justify-center" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
               Welcome back
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Sign in to your Launchbase console.
+              Sign in to your Cadence account.
             </p>
           </div>
         </div>

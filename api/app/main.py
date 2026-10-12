@@ -33,13 +33,14 @@ docs_url = None if settings.is_production else "/docs"
 redoc_url = None if settings.is_production else "/redoc"
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title="Cadence API",
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,
 )
 
 app_api = FastAPI(
+    title="Cadence App API",
     contact={"name": "Chamoda Pandithage", "email": "chamoda@xaventra.com"},
     description="App api endpoints",
     generate_unique_id_function=route_operation_id,
@@ -72,6 +73,7 @@ app.mount("/app", app_api, "app")
 
 
 internal_api = FastAPI(
+    title="Cadence Internal API",
     contact={"name": "Chamoda Pandithage", "email": "chamoda@xaventra.com"},
     description="Internal api endpoints",
     generate_unique_id_function=route_operation_id,

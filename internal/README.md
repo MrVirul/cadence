@@ -1,6 +1,6 @@
-# Launchbase Internal
+# Cadence Internal
 
-The Launchbase internal console — a [TanStack Start](https://tanstack.com/start)
+The Cadence internal console — a [TanStack Start](https://tanstack.com/start)
 single-page app. It talks to the API's `/internal` surface (internal-audience
 tokens, `internal_access_token` cookie) and provides user management for
 administrators.

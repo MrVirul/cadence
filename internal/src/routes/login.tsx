@@ -9,6 +9,7 @@ import { auth } from "@/api/endpoints/auth/auth";
 import { applyApiErrorToForm } from "@/lib/api-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/Logo";
 import {
   Form,
   FormControl,
@@ -74,13 +75,14 @@ function Login() {
     <div className="dark flex min-h-screen items-center justify-center bg-background text-foreground p-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-5 text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-            <ShieldCheck className="size-3.5 text-[#FF4F1F]" />
-            Internal · Restricted
+          <Logo className="justify-center" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-600/30 bg-amber-950/40 px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-widest text-amber-400">
+            <ShieldCheck className="size-3.5 text-[#B45309]" />
+            Cadence Internal · Restricted
           </span>
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Internal console
+              Staff Console
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Sign in with your staff credentials.

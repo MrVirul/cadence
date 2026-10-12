@@ -2,54 +2,38 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRight,
   Check,
-  LayoutTemplate,
-  Rocket,
-  Server,
+  Calendar,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo, Logomark } from "@/components/logo";
 
-// Placeholder landing page — replace this with your marketing site.
-// The full shadcn/ui component library is available under
-// `@/components/ui/*` so you can build fast.
-
-const stack = [
+const pillars = [
   {
-    dir: "api/",
-    icon: Server,
-    title: "FastAPI backend",
-    body: "Async SQLAlchemy, Postgres, Alembic migrations, JWT auth and pytest — the service, wired and ready.",
+    icon: Calendar,
+    title: "The Weekly Commitment",
+    body: "Every engineer commits to one main thing to ship by Friday. No vague tickets, no carry-over work.",
   },
   {
-    dir: "app/",
-    icon: LayoutTemplate,
-    title: "TanStack app",
-    body: "The SPA console, with Tailwind, shadcn/ui and a typed API client generated from OpenAPI.",
+    icon: Sparkles,
+    title: "AI Reviewer in the Loop",
+    body: "Pushes back on vague tasks and missing why statements before the Monday morning meeting does.",
   },
   {
-    dir: "site/",
-    icon: Rocket,
-    title: "Landing site",
-    body: "This API-less marketing site, prerendered to static HTML and shipping the full shadcn/ui component set.",
+    icon: CheckCircle2,
+    title: "Leads Approve in Minutes",
+    body: "Clear weekly commitments and checkable outcomes make approvals straightforward and decisions fast.",
   },
 ];
 
-const tech = [
-  "FastAPI",
-  "TanStack Start",
-  "Postgres",
-  "Tailwind",
-  "shadcn/ui",
-  "TypeScript",
-];
-
-const tooling = [
-  "Typed API SDK generated with orval (TanStack Query + zod)",
-  "pre-commit hooks: ruff & pyright, prettier, eslint & tsc",
-  "tmuxp dev session — API and web servers in one command",
-  "Opinionated defaults so you skip the wiring and build",
+const checklist = [
+  "One main task per engineer with checkable outcomes",
+  "Sub-goals and go-to-market milestones accounted for",
+  "AI plan review and notes drafting with clear rationale",
+  "Zero cross-org leaks: tenant-safe, role-enforced core",
 ];
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -57,7 +41,7 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center overflow-hidden px-6 py-20 font-[family-name:var(--font-geist-sans)]">
-      {/* Decorative grid backdrop, fading out toward the page body. */}
+      {/* Decorative grid backdrop */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] [mask-image:radial-gradient(ellipse_60%_100%_at_50%_0%,black,transparent)]"
@@ -68,46 +52,34 @@ function Home() {
       <div className="flex w-full max-w-4xl flex-col items-center gap-14 text-center">
         {/* Hero */}
         <div className="flex flex-col items-center gap-6">
-          <Logo className="h-11" />
+          <Logo className="scale-125" />
           <Badge variant="outline" className="rounded-full bg-background/60">
-            Full-stack monorepo template
+            Weekly Engineering Planning
           </Badge>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-            Launch faster on a base that&apos;s{" "}
-            <span className="text-[#FF4F1F]">already wired</span>
+            Plan the week.{" "}
+            <span className="text-[#4F46E5]">Ship one thing.</span>
           </h1>
           <p className="max-w-xl text-balance text-lg text-muted-foreground">
-            A FastAPI backend and TanStack Start frontends in one monorepo, with
-            shared tooling and opinionated defaults. Skip the plumbing and start
-            building your product.
+            Cadence is the weekly planning tool for engineering teams: every
+            engineer commits to one thing to ship by Friday, leads approve in
+            minutes, and an AI reviewer pushes back on vague tasks before the
+            Monday meeting does.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            {tech.map((t) => (
-              <span
-                key={t}
-                className="rounded-full border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
         </div>
 
-        {/* The three packages */}
+        {/* The three pillars */}
         <div className="grid w-full gap-4 text-left sm:grid-cols-3">
-          {stack.map(({ dir, icon: Icon, title, body }) => (
+          {pillars.map(({ icon: Icon, title, body }) => (
             <Card
-              key={dir}
+              key={title}
               className="gap-4 transition-colors hover:border-foreground/20"
             >
               <CardHeader className="gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="flex size-9 items-center justify-center rounded-lg border bg-muted/40 text-foreground">
+                  <span className="flex size-9 items-center justify-center rounded-lg border bg-muted/40 text-[#4F46E5]">
                     <Icon className="size-4.5" strokeWidth={1.75} />
                   </span>
-                  <code className="rounded bg-muted px-1.5 py-0.5 font-[family-name:var(--font-geist-mono)] text-xs text-muted-foreground">
-                    {dir}
-                  </code>
                 </div>
                 <CardTitle className="text-base">{title}</CardTitle>
               </CardHeader>
@@ -118,38 +90,41 @@ function Home() {
           ))}
         </div>
 
-        {/* Quick start */}
+        {/* Ritual overview */}
         <div className="w-full max-w-2xl overflow-hidden rounded-xl border bg-muted/30 text-left">
           <div className="flex items-center gap-1.5 border-b bg-muted/50 px-4 py-2.5">
             <span className="size-2.5 rounded-full bg-muted-foreground/25" />
             <span className="size-2.5 rounded-full bg-muted-foreground/25" />
             <span className="size-2.5 rounded-full bg-muted-foreground/25" />
-            <span className="ml-2 text-xs text-muted-foreground">
-              get started
+            <span className="ml-2 text-xs font-mono text-muted-foreground">
+              the weekly cadence
             </span>
           </div>
-          <pre className="overflow-x-auto px-4 py-4 font-[family-name:var(--font-geist-mono)] text-sm leading-relaxed">
-            <code>
-              <span className="text-muted-foreground select-none">$ </span>
-              git clone &lt;repo-url&gt; launchbase{"\n"}
-              <span className="text-muted-foreground select-none">$ </span>
-              cd launchbase{"\n"}
-              <span className="text-muted-foreground select-none">$ </span>
-              tmuxp load <span className="text-[#FF4F1F]">.</span>
-              <span className="text-muted-foreground">
-                {"  "}# api + web, one command
-              </span>
-            </code>
-          </pre>
+          <div className="p-5 font-mono text-xs space-y-2 text-foreground/80 leading-relaxed">
+            <p>
+              <span className="text-[#4F46E5] font-semibold">Monday:</span>{" "}
+              Commit to 1 main ship goal + why + sub-goals. AI reviews inline.
+            </p>
+            <p>
+              <span className="text-[#4F46E5] font-semibold">
+                Tuesday–Thursday:
+              </span>{" "}
+              Execute and tick sub-goals todo ⇄ done.
+            </p>
+            <p>
+              <span className="text-[#4F46E5] font-semibold">Friday:</span>{" "}
+              Close the week with an honest answer: did it ship?
+            </p>
+          </div>
         </div>
 
-        {/* What's already wired */}
+        {/* Checklist */}
         <ul className="grid w-full max-w-2xl gap-x-8 gap-y-3 text-left text-sm text-muted-foreground sm:grid-cols-2">
-          {tooling.map((item) => (
+          {checklist.map((item) => (
             <li key={item} className="flex items-start gap-2.5">
               <Check
                 aria-hidden
-                className="mt-0.5 size-4 shrink-0 text-[#FF4F1F]"
+                className="mt-0.5 size-4 shrink-0 text-[#16A34A]"
                 strokeWidth={2.5}
               />
               {item}
@@ -161,20 +136,10 @@ function Home() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <a
             className={buttonVariants({ size: "lg" })}
-            href="https://ui.shadcn.com/docs/components"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="http://localhost:3001/login"
           >
-            Browse components
+            Open Cadence App
             <ArrowRight className="size-4" />
-          </a>
-          <a
-            className={buttonVariants({ variant: "outline", size: "lg" })}
-            href="https://tanstack.com/start/latest"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            TanStack Start docs
           </a>
         </div>
       </div>
@@ -182,13 +147,7 @@ function Home() {
       {/* Footer */}
       <footer className="mt-20 flex items-center gap-2 text-xs text-muted-foreground">
         <Logomark className="size-4" />
-        <span>
-          Edit{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-[family-name:var(--font-geist-mono)]">
-            src/routes/index.tsx
-          </code>{" "}
-          to make it yours.
-        </span>
+        <span>Cadence — Weekly planning for engineering teams.</span>
       </footer>
     </main>
   );

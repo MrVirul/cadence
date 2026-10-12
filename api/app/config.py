@@ -10,7 +10,7 @@ class Settings(BaseSettings):
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
 
-    PROJECT_NAME: str = "app"
+    PROJECT_NAME: str = "Cadence"
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
     LOG_LEVEL: str = "DEBUG"
     SECRET_KEY: str = ""

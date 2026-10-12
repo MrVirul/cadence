@@ -1,13 +1,10 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="branding/banner-dark.svg">
-    <img src="branding/banner-light.svg" alt="Launchbase — a polyglot monorepo template" width="100%">
-  </picture>
-</p>
+# Cadence
 
-A pragmatic polyglot monorepo template: a FastAPI backend and TanStack Start
-frontends, with shared tooling wired for monorepo development. Opinionated
-defaults so you can skip the wiring and start building.
+*Plan the week. Ship one thing.*
+
+Based on the Launchbase template.
+
+Cadence is the weekly planning tool for engineering teams: every engineer commits to one thing to ship by Friday, leads approve in minutes, and an AI reviewer pushes back on vague tasks before the Monday meeting does.
 
 ## Structure
 

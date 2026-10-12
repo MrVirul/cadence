@@ -1,6 +1,6 @@
-# Launchbase App
+# Cadence App
 
-The Launchbase frontend — a [TanStack Start](https://tanstack.com/start)
+The Cadence frontend — a [TanStack Start](https://tanstack.com/start)
 single-page app.
 
 ## Architecture

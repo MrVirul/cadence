@@ -60,7 +60,7 @@ cli = AsyncTyper()
 
 @cli.callback()
 def main():
-    """Launchbase management CLI."""
+    """Cadence management CLI."""
     # Present so Typer always runs in subcommand mode (`manage.py user-create`),
     # even while there is only a single command registered.
 

@@ -1,6 +1,6 @@
-# Launchbase API
+# Cadence API
 
-The Launchbase backend — a SaaS-shaped Python service built on FastAPI.
+The Cadence backend — a weekly planning SaaS service built on FastAPI.
 
 ## Requirements
 
