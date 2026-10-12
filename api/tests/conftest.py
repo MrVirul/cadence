@@ -65,8 +65,11 @@ async def test_engine(postgres_container):
         connect_args={"server_settings": {"application_name": "pytest"}},
     )
 
-    # Create tables
+    # Reset the schema for every test. The Postgres container is session-scoped,
+    # so without drop_all, rows committed by an earlier test persist and Faker's
+    # small email space can collide on users_email_key (flaky 500s).
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
