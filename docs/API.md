@@ -188,23 +188,24 @@ its own short session **before** the HTTP error is raised.
 
 Every route requires an internal-audience token **and** `is_admin` (platform
 staff). A **wrong-audience** token (e.g. a customer `/app` token) → `401
-unauthorized`; a **right-audience** token whose user is **not** `is_admin` →
-`403 staff_only`. A staff token on `/app/orgs/...` is rejected because staff are
-not org members (`404 not_found`).
+invalid_token`; a **right-audience** token whose user is **not** `is_admin` →
+`403 staff_only`. A staff token on `/app/orgs/...` is rejected with `401 invalid_token`
+(audience is checked before `get_org_context`); `404 not_found` only happens for a staff user
+holding an `/app` token who is not a member.
 
 | Method | Path | Who | Request | Response | Status | Error codes |
 |---|---|---|---|---|---|---|
-| GET | `/internal/orgs` | staff | `?q&limit&offset` | page of `{id, name, slug, member_count, team_count, plan_count, last_active_at, is_suspended}` | 200 | 403 `staff_only` |
-| GET | `/internal/orgs/{id}` | staff | — | org counts + `members:[{email, role}]` — **no plan/task text** | 200 | 404 `not_found` |
-| POST | `/internal/orgs/{id}/suspend` | staff | `{reason}` | `org` | 200 | 404 `not_found`, 422 |
-| POST | `/internal/orgs/{id}/reinstate` | staff | — | `org` | 200 | 404 `not_found` |
-| GET | `/internal/users` | staff | `?q&limit&offset` | page of users (`id, email, name, is_active, orgs:[{id, role}]`) | 200 | 403 `staff_only` |
-| GET | `/internal/users/{id}` | staff | — | user + `orgs:[{id, role}]` | 200 | 404 `not_found` |
-| POST | `/internal/users/{id}/deactivate` | staff (not self, not other staff) | `{reason}` | user | 200 | 403 `forbidden`, 404 `not_found`, 422 |
-| POST | `/internal/users/{id}/reactivate` | staff | — | user | 200 | 404 `not_found` |
-| GET | `/internal/ai-usage` | staff | `?from&to&limit&offset` | page per org: `{org_id, calls, failures, rate_limited, p50_latency_ms, avg_latency_ms, input_tokens, output_tokens}` | 200 | 422 `validation_error` |
-| GET | `/internal/ai-usage/{org_id}/daily` | staff | `?from&to` | `{days:[{date, calls, failures, rate_limited}]}` | 200 | 404 `not_found` |
-| GET | `/internal/audit-log` | staff | `?limit&offset` | page of `staff_actions` | 200 | 403 `staff_only` |
+| GET | `/internal/orgs` | staff | `?q&limit&offset` | page of `{id, name, slug, member_count, team_count, plan_count, last_active_at, is_suspended}` | 200 | 401 `invalid_token`, 403 `staff_only` |
+| GET | `/internal/orgs/{id}` | staff | — | org counts + `members:[{email, name, role}]` — **no plan/task text** | 200 | 401 `invalid_token`, 404 `not_found` |
+| POST | `/internal/orgs/{id}/suspend` | staff | `{reason}` | `org` | 200 | 401 `invalid_token`, 404 `not_found`, 422 |
+| POST | `/internal/orgs/{id}/reinstate` | staff | — | `org` | 200 | 401 `invalid_token`, 404 `not_found` |
+| GET | `/internal/users` | staff | `?q&limit&offset` | page of users (`id, email, name, is_active, orgs:[{id, name, role}]`) | 200 | 401 `invalid_token`, 403 `staff_only` |
+| GET | `/internal/users/{id}` | staff | — | user + `orgs:[{id, name, role}]` | 200 | 401 `invalid_token`, 404 `not_found` |
+| POST | `/internal/users/{id}/deactivate` | staff (not self, not other staff) | `{reason}` | user | 200 | 401 `invalid_token`, 403 `forbidden`, 404 `not_found`, 422 |
+| POST | `/internal/users/{id}/reactivate` | staff | — | user | 200 | 401 `invalid_token`, 404 `not_found` |
+| GET | `/internal/ai-usage` | staff | `?from&to&limit&offset` | page per org: `{org_id, org_name, calls, failures, rate_limited, p50_latency_ms, avg_latency_ms, input_tokens, output_tokens}` | 200 | 401 `invalid_token`, 422 `validation_error` |
+| GET | `/internal/ai-usage/{org_id}/daily` | staff | `?from&to` | `{days:[{date, calls, failures, rate_limited}]}` | 200 | 401 `invalid_token`, 404 `not_found` |
+| GET | `/internal/audit-log` | staff | `?limit&offset` | page of `staff_actions` | 200 | 401 `invalid_token`, 403 `staff_only` |
 
 Retained template endpoints: `GET /internal/health`, `POST /internal/auth`,
 `POST /internal/logout`, `GET /internal/users/self`. All internal responses
@@ -216,11 +217,11 @@ across existing and new routes must contain **no plan, task or AI text**.
 
 | Code | HTTP | Meaning |
 |---|---|---|
-| `unauthorized` | 401 | Missing/invalid/expired credentials, or deactivated user. |
-| `invalid_token` | 401 | Token signature/audience/format invalid. |
+| `unauthorized` | 401 | Missing/invalid/expired credentials on login, or deactivated user. |
+| `invalid_token` | 401 | Token signature/audience/format invalid, or wrong-audience token (/app on /internal, or /internal on /app). |
 | `credentials_required` | 401 | No cookie or `Access-Token` header supplied. |
 | `forbidden` | 403 | Authenticated but not permitted (role/lead/ownership). |
-| `staff_only` | 403 | `/internal` route called with a valid internal-audience token by a user who is not `is_admin`. (A wrong-audience token gets `401 unauthorized`.) |
+| `staff_only` | 403 | `/internal` route called with a valid internal-audience token by a user who is not `is_admin`. (A wrong-audience token gets `401 invalid_token`.) |
 | `org_suspended` | 403 | Org is suspended; contact support. |
 | `not_found` | 404 | Resource does not exist **in this org** (also used for cross-org ids). |
 | `invite_invalid` | 404 | Invite invalid, expired, used or revoked. |
@@ -315,7 +316,7 @@ One sentence each; each maps to a pytest assertion.
 25. An `admin` changing an `owner`'s role or removing an `owner` gets `403` and the owner is unchanged.
 26. An `admin` can change a `member`↔`admin` role.
 27. Demoting or removing an org's **last owner** gets `409` with `code="last_owner"` and the membership is unchanged.
-28. An org `owner`/`admin` who is not platform staff cannot use `/internal/*`: with an `/app` token → `401 unauthorized` (wrong audience); even with a valid internal-audience token → `403 staff_only`.
+28. An org `owner`/`admin` who is not platform staff cannot use `/internal/*`: with an `/app` token → `401 invalid_token` (wrong audience); even with a valid internal-audience token → `403 staff_only`.
 
 ### Self-approval
 
@@ -325,10 +326,10 @@ One sentence each; each maps to a pytest assertion.
 
 ### Customer token vs staff token
 
-32. A valid `/app` (customer) token used on `GET /internal/orgs` gets `401 unauthorized` (wrong audience).
-33. A valid `/internal` (staff) token used on `GET /app/orgs/{org_id}` gets `404` (staff are not org members, so they have no read access).
+32. A valid `/app` (customer) token used on `GET /internal/orgs` gets `401 invalid_token` (wrong audience).
+33. A valid `/internal` (staff) token used on `GET /app/orgs/{org_id}` gets `401 invalid_token` (audience is checked before `get_org_context`).
 34. A right-audience `/internal` token whose user is not `is_admin` gets `403` with `code="staff_only"`.
-35. A staff user is not an org member, so `/app/orgs/{org_id}` returns `404` regardless of the token audience.
+35. A staff user holding an `/app` token who is not an org member gets `404 not_found` on `/app/orgs/{org_id}`.
 
 ### Race cases
 
