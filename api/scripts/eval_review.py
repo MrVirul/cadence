@@ -175,6 +175,7 @@ async def main() -> int:
         deps = ReviewDeps(
             refs=frozenset(t.ref for t in tasks),
             main_refs=frozenset(t.ref for t in tasks if t.kind == "main"),
+            has_gtm=any(t.kind == "gtm" for t in tasks),
             titles={t.ref: t.title for t in tasks},
             whys={t.ref: t.why for t in tasks},
         )

@@ -39,6 +39,10 @@ class ReviewDeps:
 
     refs: frozenset[str]
     main_refs: frozenset[str]
+    # Whether the submitted plan already carries at least one go-to-market task.
+    # The rubric makes a GTM goal mandatory, so the validator backstops the
+    # prompt when the model forgets to flag its absence (see ``has_gtm`` below).
+    has_gtm: bool
     titles: dict[str, str] = field(default_factory=dict)
     whys: dict[str, str | None] = field(default_factory=dict)
 
@@ -87,6 +91,27 @@ def build_review_agent() -> Agent[ReviewDeps, PlanReview]:
                 "verdict is 'approve' but a blocker finding exists; change the "
                 "verdict to 'adjust' or downgrade/remove the blocker."
             )
+
+        # Deterministic go-to-market backstop. The rubric makes a GTM goal
+        # mandatory, but a model occasionally approves a plan that has none; the
+        # validator cannot invent the missing finding (the prompt owns the
+        # wording), so it rejects the answer and lets the retry fix it. A
+        # ``suggestion``-severity ``missing_gtm`` finding is enough to satisfy it.
+        if not ctx.deps.has_gtm:
+            has_missing_gtm = any(
+                finding.category == "missing_gtm" for finding in output.findings
+            )
+            if not has_missing_gtm:
+                raise ModelRetry(
+                    "the plan has no go-to-market goal; add a finding with "
+                    "category='missing_gtm', action='add_task' and "
+                    "suggested_kind='gtm'."
+                )
+            if output.verdict == "approve":
+                raise ModelRetry(
+                    "the plan has no go-to-market goal, so the verdict cannot be "
+                    "'approve'; set verdict to 'adjust'."
+                )
 
         for finding in output.findings:
             ref = finding.task_ref

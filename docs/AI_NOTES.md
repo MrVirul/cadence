@@ -24,8 +24,8 @@ Both instructions are versioned constants. The review prompt contains:
 
 1. Role — a demanding but fair engineering lead.
 2. Rubric — (1) checkable result, not work to do; (2) the main task must say
-   **why** it matters; (3) at least one go-to-market goal (unless the main task
-   is clearly internal-only); (4) scope must fit in one week; (5) no duplicates.
+   **why** it matters; (3) at least one go-to-market goal (mandatory — no
+   internal-only escape); (4) scope must fit in one week; (5) no duplicates.
 3. Few-shot bad → good rewrites (`"Implement checkout"` → `"Checkout handles
    expired cards, confirmed on staging"`; the webhook-idempotency example).
 4. Rules — be specific and quote the task's words, one finding per problem,
@@ -40,6 +40,15 @@ review output is validated by an `@output_validator` (`retries=2`) that rejects 
 `task_ref` outside the submitted refs, a `rewrite_why` aimed at a non-main task,
 an `add_task` without `suggested_kind`, an empty/identical rewrite, and an
 `approve` verdict that still carries a blocker.
+
+The validator also carries a **deterministic go-to-market backstop**: the route
+passes `ReviewDeps.has_gtm` (whether the submitted plan already has a `gtm`
+task), and when it is `false` the validator requires a `missing_gtm` finding
+(`suggestion` severity is enough) **and** a non-`approve` verdict, raising
+`ModelRetry` otherwise. The prompt says the same thing, but the validator makes
+it a hard gate: a model that approves a plan with no GTM goal can no longer do
+so, and a model that simply forgets to mention it gets one retry to fix its
+answer before the call fails as `ai_bad_output`.
 
 The draft agent turns a brain dump into one main task (with a why), supporting
 sub-goals, GTM goals, plus `left_out` and `open_questions` for what the notes do
@@ -85,13 +94,17 @@ it, and the response stayed schema-valid.
 
 ## Known weaknesses
 
-- **`missing_gtm` approved the plan with no GTM task.** The rubric warns to say
-  so when the main task is internal-only, and the model treated a plain
-  sub-goal as enough of a customer-visible surface. Tighten rule 3 wording if
-  GTM should be a hard requirement.
-- **`internal_only` still returned a `missing_gtm` suggestion** (severity
-  `suggestion`, not a blocker) instead of stating "internal-only, no GTM needed".
-  Acceptable, but the prompt could be firmer.
+- ~~`missing_gtm` approved the plan with no GTM task.~~ **Fixed by the
+  validator backstop** (and firmer rubric rule 3): a plan with no `gtm` task can
+  no longer be approved, and the absence must be reported as a `missing_gtm`
+  finding. The eval table above is the pre-fix run; the `missing_gtm` and
+  `internal_only` fixtures now both return `adjust` with a `missing_gtm` →
+  `add_task` finding.
+- **The GTM requirement is now unconditional.** There is no
+  "clearly internal-only" escape: a plan with zero GTM tasks always gets a
+  `missing_gtm` finding. This is a deliberate product decision (every week
+  should ship something a customer can see) recorded in `docs/DECISIONS.md`, not
+  a prompt accident.
 - Rewrites sometimes echo the `[t1] MAIN:` prefix or use placeholders such as
   `<metric>`; the UI strips the ref prefix when applying a rewrite.
 - The review is per-form and stateless: it reviews the current draft only, with

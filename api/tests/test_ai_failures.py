@@ -32,6 +32,8 @@ from tests.ai_support import (
 
 
 def _body(title: str = "Checkout handles expired cards") -> dict:
+    # The plan carries a GTM task so the validator's go-to-market backstop stays
+    # quiet whatever the model returns; the failures here are transport-level.
     return {
         "week_start": WEEK.isoformat(),
         "tasks": [
@@ -40,7 +42,8 @@ def _body(title: str = "Checkout handles expired cards") -> dict:
                 "kind": "main",
                 "title": title,
                 "why": "Users are blocked at payment",
-            }
+            },
+            {"ref": "gtm", "kind": "gtm", "title": "Ship a changelog entry"},
         ],
     }
 

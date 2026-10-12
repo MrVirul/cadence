@@ -366,7 +366,10 @@ TENANCY_REGISTRY: list[RouteCase] = [
                     "kind": "main",
                     "title": "Checkout handles expired cards",
                     "why": "Users are blocked at payment",
-                }
+                },
+                # A GTM task keeps the review validator's go-to-market backstop
+                # quiet so the matrix's success leg reaches the stub model.
+                {"ref": "t2", "kind": "gtm", "title": "Ship a changelog entry"},
             ],
         },
     ),

@@ -22,6 +22,7 @@ def _review_deps(tasks: list[TaskIn]) -> ReviewDeps:
     return ReviewDeps(
         refs=frozenset(task.ref for task in tasks),
         main_refs=frozenset(task.ref for task in tasks if task.kind == "main"),
+        has_gtm=any(task.kind == "gtm" for task in tasks),
         titles={task.ref: task.title for task in tasks},
         whys={task.ref: task.why for task in tasks},
     )

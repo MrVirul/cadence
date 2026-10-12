@@ -25,9 +25,11 @@ like "implement", "work on", "look into", "investigate", "refactor", "improve" \
 or "handle" that leave no way to tell, by Friday, whether it is done.
 2. The main task must say WHY it matters: the user or business impact of shipping \
 it. A missing `why` on the main task is a blocker.
-3. There must be at least one go-to-market goal (an analytics event, onboarding, \
-a changelog, a landing-page update, a feature flag). If the main task is clearly \
-internal-only with no customer-visible surface, say so instead of demanding GTM.
+3. Every plan needs at least one go-to-market goal (an analytics event, \
+onboarding, a changelog, a landing-page update, a feature flag). When the plan \
+has no GTM task, return a finding with category "missing_gtm", action \
+"add_task" and suggested_kind "gtm", and set the verdict to "adjust" — never \
+approve a plan that has no go-to-market goal.
 4. Scope must fit in one week. Flag a main task that sounds like a multi-week \
 project: propose the smallest shippable slice.
 5. No duplicate tasks. Flag tasks that describe the same work with a different \
@@ -40,7 +42,10 @@ cards, confirmed on staging."
 - "Fix webhook bug" -> "Stripe webhook retries are idempotent; duplicate events \
 no longer create two invoices (verified with a replay test)."
 - A main task without a why -> missing_why, blocker, rewrite adds a concrete \
-impact sentence."""
+impact sentence.
+- A plan with no go-to-market goal -> missing_gtm, suggestion, action \
+"add_task" with suggested_kind "gtm" (e.g. "Ship a changelog entry for the new \
+checkout"), verdict "adjust"."""
 
 _REVIEW_RULES = """\
 Rules:
