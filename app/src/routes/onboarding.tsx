@@ -63,7 +63,6 @@ function OnboardingPage() {
   });
 
   const createOrgMutation = useMutation({
-    meta: { skipGlobalErrorToast: true },
     mutationFn: (data: OnboardingFormData) =>
       createOrg({ name: data.name.trim() }),
     onSuccess: async (org) => {
@@ -74,6 +73,9 @@ function OnboardingPage() {
     },
     onError: (error: unknown) => {
       const code = getApiErrorCode(error);
+      if (code === "forbidden") {
+        return;
+      }
       if (code === "validation_error") {
         const { fieldErrors, generalMessage } = parseValidationErrors(error);
         if (fieldErrors["name"]) {

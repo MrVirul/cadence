@@ -51,7 +51,6 @@ function InvitePreviewPage() {
   });
 
   const acceptMutation = useMutation({
-    meta: { skipGlobalErrorToast: true },
     mutationFn: () => acceptInvite(token),
     onSuccess: async (res) => {
       const orgId = res.membership.org_id;
@@ -62,6 +61,9 @@ function InvitePreviewPage() {
     onError: async (error: unknown) => {
       const code = getApiErrorCode(error);
       const status = getApiStatus(error);
+      if (code === "forbidden") {
+        return;
+      }
       if (code === "invite_invalid" || status === 404) {
         setInviteInvalidated(true);
         return;
