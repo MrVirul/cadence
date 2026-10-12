@@ -131,6 +131,19 @@ class ValidationException(APIException):
         )
 
 
+class InvalidTransitionException(APIException):
+    """The plan state machine rejects the requested action (docs/DATA_MODEL.md)."""
+
+    def __init__(
+        self, message: str = "That action is not allowed from the plan's current state"
+    ) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            code="invalid_transition",
+            message=message,
+        )
+
+
 class LastOwnerException(APIException):
     def __init__(self) -> None:
         super().__init__(

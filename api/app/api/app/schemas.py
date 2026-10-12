@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal
 
 from pydantic import UUID4, ConfigDict, EmailStr, Field, model_validator
@@ -10,6 +11,12 @@ from app.schemas import DateTime, Model
 # advertise the allowed values; services always store the same string values.
 OrgRole = Literal["owner", "admin", "member"]
 InviteRole = Literal["admin", "member"]
+
+# Plan/task domain literals. Same string values the models store (no DB enums).
+TaskKind = Literal["main", "sub_goal", "gtm"]
+TaskStatus = Literal["todo", "done"]
+PlanStatus = Literal["draft", "submitted", "approved", "done"]
+PlanEventAction = Literal["submitted", "withdrawn", "approved", "sent_back", "closed"]
 
 
 class RequestModel(Model):
@@ -170,3 +177,106 @@ class TeamMemberResponse(Model):
 
 class TeamDetailResponse(TeamResponse):
     members: list[TeamMemberResponse]
+
+
+# --- Plans & tasks (docs/API.md §"Plans & tasks") -------------------------
+
+
+class TaskInput(RequestModel):
+    """A task as sent by the client.
+
+    ``id`` is omitted for a new task and present to update an existing one in
+    place, so task ids stay stable across edits. Never declares ``org_id``,
+    ``plan_id`` or ``status`` (server-controlled).
+    """
+
+    id: UUID4 | None = None
+    kind: TaskKind
+    title: str = Field(min_length=1, max_length=200)
+    why: str | None = Field(default=None, max_length=500)
+    position: int | None = Field(default=None, ge=0)
+
+
+class PlanCreateRequest(RequestModel):
+    week_start: date
+    team_id: UUID4
+    tasks: list[TaskInput] = Field(default_factory=list)
+
+
+class PlanUpdateRequest(RequestModel):
+    team_id: UUID4 | None = None
+    tasks: list[TaskInput] = Field(default_factory=list)
+
+
+class TaskStatusRequest(RequestModel):
+    status: TaskStatus
+
+
+class SendBackRequest(RequestModel):
+    comment: str = Field(min_length=1, max_length=1000)
+
+
+class PlanCloseRequest(RequestModel):
+    shipped: bool
+
+
+class PlanPerson(Model):
+    membership_id: UUID4
+    user: MemberUser
+
+
+class PlanTaskResponse(Model):
+    id: UUID4
+    kind: TaskKind
+    title: str
+    why: str | None
+    status: TaskStatus
+    position: int
+    done_at: DateTime | None
+
+
+class PlanEventResponse(Model):
+    id: UUID4
+    actor_membership_id: UUID4 | None
+    action: PlanEventAction
+    comment: str | None
+    self_approved: bool
+    created_at: DateTime
+
+
+class PlanResponse(Model):
+    id: UUID4
+    week_start: date
+    status: PlanStatus
+    team_id: UUID4
+    author: PlanPerson
+    submitted_at: DateTime | None
+    decided_at: DateTime | None
+    decided_by: PlanPerson | None
+    decision_comment: str | None
+    shipped: bool | None
+    closed_at: DateTime | None
+    created_at: DateTime
+    updated_at: DateTime | None
+
+
+class PlanDetailResponse(PlanResponse):
+    tasks: list[PlanTaskResponse]
+    events: list[PlanEventResponse]
+
+
+class PlanListItem(Model):
+    """List row: counts and status only — never task text (least privilege)."""
+
+    id: UUID4
+    week_start: date
+    status: PlanStatus
+    team_id: UUID4
+    author: PlanPerson
+    tasks_done: int
+    tasks_total: int
+    shipped: bool | None
+    submitted_at: DateTime | None
+    decided_at: DateTime | None
+    created_at: DateTime
+    updated_at: DateTime | None

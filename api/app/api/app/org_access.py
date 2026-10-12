@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Annotated, Any, Literal, cast
 
 from fastapi import Depends, Request
@@ -28,6 +28,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.app.access import CurrentUser
+from app.clock import today_utc
 from app.database import DBSession
 from app.exceptions import (
     OrgSuspendedException,
@@ -115,6 +116,19 @@ OrgContextDependency = Annotated[OrgContext, Depends(get_org_context)]
 require_org_member = Annotated[OrgContext, Depends(_require_org_member)]
 require_org_admin = Annotated[OrgContext, Depends(_require_org_admin)]
 require_org_owner = Annotated[OrgContext, Depends(_require_org_owner)]
+
+
+def get_today() -> date:
+    """Injectable "today" (UTC date) for week validation.
+
+    Routes that validate a plan week depend on this instead of calling
+    ``date.today()`` directly, so tests can override the dependency
+    (``app.dependency_overrides[get_today]``) and pin "current week".
+    """
+    return today_utc()
+
+
+Today = Annotated[date, Depends(get_today)]
 
 
 async def get_in_org(
