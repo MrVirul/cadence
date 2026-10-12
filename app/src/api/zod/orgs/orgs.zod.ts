@@ -22,3 +22,39 @@ export const CreateOrgResponse = zod.object({
   slug: zod.string(),
   created_at: zod.string().datetime({ offset: true }),
 });
+
+/**
+ * @summary Get Org
+ */
+export const GetOrgParams = zod.object({
+  org_id: zod.string().uuid(),
+});
+
+export const GetOrgResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  slug: zod.string(),
+  created_at: zod.string().datetime({ offset: true }),
+});
+
+/**
+ * @summary Update Org
+ */
+export const UpdateOrgParams = zod.object({
+  org_id: zod.string().uuid(),
+});
+
+export const updateOrgBodyNameOneMax = 200;
+
+export const UpdateOrgBody = zod.object({
+  name: zod
+    .union([zod.string().min(1).max(updateOrgBodyNameOneMax), zod.null()])
+    .optional(),
+});
+
+export const UpdateOrgResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  slug: zod.string(),
+  created_at: zod.string().datetime({ offset: true }),
+});

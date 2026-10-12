@@ -24,11 +24,15 @@ import type {
 import type {
   HTTPValidationError,
   InviteAcceptResponse,
+  InviteCreateRequest,
   InvitePreviewResponse,
+  InviteResponse,
+  ListInvitesParams,
+  PageResponseInviteResponse,
 } from "../../model";
 
 import { customInstance } from "../../../lib/api-client";
-import type { ErrorType } from "../../../lib/api-client";
+import type { ErrorType, BodyType } from "../../../lib/api-client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -283,4 +287,356 @@ export const useAcceptInvite = <
   TContext
 > => {
   return useMutation(getAcceptInviteMutationOptions(options), queryClient);
+};
+export const getCreateInviteUrl = (orgId: string) => {
+  return `/orgs/${orgId}/invites`;
+};
+
+/**
+ * @summary Create Invite
+ */
+export const createInvite = async (
+  orgId: string,
+  inviteCreateRequest: InviteCreateRequest,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<InviteResponse> => {
+  return customInstance<InviteResponse>(getCreateInviteUrl(orgId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(inviteCreateRequest),
+  });
+};
+
+export const getCreateInviteMutationOptions = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createInvite>>,
+    TError,
+    { orgId: string; data: BodyType<InviteCreateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createInvite>>,
+  TError,
+  { orgId: string; data: BodyType<InviteCreateRequest> },
+  TContext
+> => {
+  const mutationKey = ["createInvite"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createInvite>>,
+    { orgId: string; data: BodyType<InviteCreateRequest> }
+  > = (props) => {
+    const { orgId, data } = props ?? {};
+
+    return createInvite(orgId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateInviteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createInvite>>
+>;
+export type CreateInviteMutationBody = BodyType<InviteCreateRequest>;
+export type CreateInviteMutationError = ErrorType<HTTPValidationError>;
+
+/**
+ * @summary Create Invite
+ */
+export const useCreateInvite = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createInvite>>,
+      TError,
+      { orgId: string; data: BodyType<InviteCreateRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof createInvite>>,
+  TError,
+  { orgId: string; data: BodyType<InviteCreateRequest> },
+  TContext
+> => {
+  return useMutation(getCreateInviteMutationOptions(options), queryClient);
+};
+export const getListInvitesUrl = (
+  orgId: string,
+  params?: ListInvitesParams
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/orgs/${orgId}/invites?${stringifiedParams}`
+    : `/orgs/${orgId}/invites`;
+};
+
+/**
+ * @summary List Invites
+ */
+export const listInvites = async (
+  orgId: string,
+  params?: ListInvitesParams,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<PageResponseInviteResponse> => {
+  return customInstance<PageResponseInviteResponse>(
+    getListInvitesUrl(orgId, params),
+    {
+      ...options,
+      method: "GET",
+    }
+  );
+};
+
+export const getListInvitesQueryKey = (
+  orgId: string,
+  params?: ListInvitesParams
+) => {
+  return [`/orgs/${orgId}/invites`, ...(params ? [params] : [])] as const;
+};
+
+export const getListInvitesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listInvites>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  params?: ListInvitesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listInvites>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListInvitesQueryKey(orgId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvites>>> = ({
+    signal,
+  }) => listInvites(orgId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: orgId !== null && orgId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listInvites>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ListInvitesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listInvites>>
+>;
+export type ListInvitesQueryError = ErrorType<HTTPValidationError>;
+
+export function useListInvites<
+  TData = Awaited<ReturnType<typeof listInvites>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  params: undefined | ListInvitesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listInvites>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInvites>>,
+          TError,
+          Awaited<ReturnType<typeof listInvites>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListInvites<
+  TData = Awaited<ReturnType<typeof listInvites>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  params?: ListInvitesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listInvites>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listInvites>>,
+          TError,
+          Awaited<ReturnType<typeof listInvites>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useListInvites<
+  TData = Awaited<ReturnType<typeof listInvites>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  params?: ListInvitesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listInvites>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List Invites
+ */
+
+export function useListInvites<
+  TData = Awaited<ReturnType<typeof listInvites>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  params?: ListInvitesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listInvites>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getListInvitesQueryOptions(orgId, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getRevokeInviteUrl = (orgId: string, inviteId: string) => {
+  return `/orgs/${orgId}/invites/${inviteId}`;
+};
+
+/**
+ * @summary Revoke Invite
+ */
+export const revokeInvite = async (
+  orgId: string,
+  inviteId: string,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<void> => {
+  return customInstance<void>(getRevokeInviteUrl(orgId, inviteId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getRevokeInviteMutationOptions = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeInvite>>,
+    TError,
+    { orgId: string; inviteId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeInvite>>,
+  TError,
+  { orgId: string; inviteId: string },
+  TContext
+> => {
+  const mutationKey = ["revokeInvite"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeInvite>>,
+    { orgId: string; inviteId: string }
+  > = (props) => {
+    const { orgId, inviteId } = props ?? {};
+
+    return revokeInvite(orgId, inviteId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeInviteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeInvite>>
+>;
+
+export type RevokeInviteMutationError = ErrorType<HTTPValidationError>;
+
+/**
+ * @summary Revoke Invite
+ */
+export const useRevokeInvite = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof revokeInvite>>,
+      TError,
+      { orgId: string; inviteId: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof revokeInvite>>,
+  TError,
+  { orgId: string; inviteId: string },
+  TContext
+> => {
+  return useMutation(getRevokeInviteMutationOptions(options), queryClient);
 };

@@ -32,3 +32,82 @@ export const AcceptInviteResponse = zod.object({
     role: zod.enum(["admin", "member"]),
   }),
 });
+
+/**
+ * @summary Create Invite
+ */
+export const CreateInviteParams = zod.object({
+  org_id: zod.string().uuid(),
+});
+
+export const createInviteBodyExpiresInDaysOneMax = 30;
+
+export const CreateInviteBody = zod.object({
+  role: zod.enum(["admin", "member"]),
+  expires_in_days: zod
+    .union([
+      zod.number().int().min(1).max(createInviteBodyExpiresInDaysOneMax),
+      zod.null(),
+    ])
+    .optional(),
+});
+
+export const CreateInviteResponse = zod.object({
+  id: zod.string(),
+  token: zod.string(),
+  role: zod.enum(["admin", "member"]),
+  expires_at: zod.string().datetime({ offset: true }),
+  url: zod.string(),
+});
+
+/**
+ * @summary List Invites
+ */
+export const ListInvitesParams = zod.object({
+  org_id: zod.string().uuid(),
+});
+
+export const listInvitesQueryLimitDefault = 50;
+export const listInvitesQueryLimitMax = 100;
+
+export const listInvitesQueryOffsetDefault = 0;
+export const listInvitesQueryOffsetMin = 0;
+
+export const ListInvitesQueryParams = zod.object({
+  limit: zod
+    .number()
+    .int()
+    .min(1)
+    .max(listInvitesQueryLimitMax)
+    .default(listInvitesQueryLimitDefault),
+  offset: zod
+    .number()
+    .int()
+    .min(listInvitesQueryOffsetMin)
+    .default(listInvitesQueryOffsetDefault),
+});
+
+export const ListInvitesResponse = zod.object({
+  items: zod.array(
+    zod.object({
+      id: zod.string(),
+      token: zod.string(),
+      role: zod.enum(["admin", "member"]),
+      expires_at: zod.string().datetime({ offset: true }),
+      url: zod.string(),
+    })
+  ),
+  total: zod.number().int(),
+  limit: zod.number().int(),
+  offset: zod.number().int(),
+});
+
+/**
+ * @summary Revoke Invite
+ */
+export const RevokeInviteParams = zod.object({
+  invite_id: zod.string().uuid(),
+  org_id: zod.string().uuid(),
+});
+
+export const RevokeInviteResponse = zod.void();

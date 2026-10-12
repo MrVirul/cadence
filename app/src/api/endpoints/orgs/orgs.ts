@@ -5,24 +5,51 @@
  * App api endpoints
  * OpenAPI spec version: 0.1.0
  */
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
 } from "@tanstack/react-query";
 
 import type {
   HTTPValidationError,
   OrgCreateRequest,
   OrgResponse,
+  OrgUpdateRequest,
 } from "../../model";
 
 import { customInstance } from "../../../lib/api-client";
 import type { ErrorType, BodyType } from "../../../lib/api-client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+const withQueryKey = <T extends object, K>(
+  query: T,
+  queryKey: K
+): T & { queryKey: K } => {
+  const result = { queryKey } as T & { queryKey: K };
+  for (const key of Object.keys(query)) {
+    // The explicit queryKey always wins, matching the previous
+    // `{ ...query, queryKey }` spread where it was set last.
+    if (key === "queryKey") continue;
+    Object.defineProperty(result, key, {
+      enumerable: true,
+      configurable: true,
+      get: () => (query as Record<string, unknown>)[key],
+    });
+  }
+  return result;
+};
 
 export const getCreateOrgUrl = () => {
   return `/orgs`;
@@ -111,4 +138,237 @@ export const useCreateOrg = <
   TContext
 > => {
   return useMutation(getCreateOrgMutationOptions(options), queryClient);
+};
+export const getGetOrgUrl = (orgId: string) => {
+  return `/orgs/${orgId}`;
+};
+
+/**
+ * @summary Get Org
+ */
+export const getOrg = async (
+  orgId: string,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<OrgResponse> => {
+  return customInstance<OrgResponse>(getGetOrgUrl(orgId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetOrgQueryKey = (orgId: string) => {
+  return [`/orgs/${orgId}`] as const;
+};
+
+export const getGetOrgQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOrg>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrg>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetOrgQueryKey(orgId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrg>>> = ({
+    signal,
+  }) => getOrg(orgId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: orgId !== null && orgId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getOrg>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetOrgQueryResult = NonNullable<Awaited<ReturnType<typeof getOrg>>>;
+export type GetOrgQueryError = ErrorType<HTTPValidationError>;
+
+export function useGetOrg<
+  TData = Awaited<ReturnType<typeof getOrg>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrg>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrg>>,
+          TError,
+          Awaited<ReturnType<typeof getOrg>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetOrg<
+  TData = Awaited<ReturnType<typeof getOrg>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrg>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getOrg>>,
+          TError,
+          Awaited<ReturnType<typeof getOrg>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetOrg<
+  TData = Awaited<ReturnType<typeof getOrg>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrg>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get Org
+ */
+
+export function useGetOrg<
+  TData = Awaited<ReturnType<typeof getOrg>>,
+  TError = ErrorType<HTTPValidationError>,
+>(
+  orgId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getOrg>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetOrgQueryOptions(orgId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getUpdateOrgUrl = (orgId: string) => {
+  return `/orgs/${orgId}`;
+};
+
+/**
+ * @summary Update Org
+ */
+export const updateOrg = async (
+  orgId: string,
+  orgUpdateRequest: OrgUpdateRequest,
+  options?: Parameters<typeof customInstance>[1]
+): Promise<OrgResponse> => {
+  return customInstance<OrgResponse>(getUpdateOrgUrl(orgId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(orgUpdateRequest),
+  });
+};
+
+export const getUpdateOrgMutationOptions = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateOrg>>,
+    TError,
+    { orgId: string; data: BodyType<OrgUpdateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateOrg>>,
+  TError,
+  { orgId: string; data: BodyType<OrgUpdateRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateOrg"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateOrg>>,
+    { orgId: string; data: BodyType<OrgUpdateRequest> }
+  > = (props) => {
+    const { orgId, data } = props ?? {};
+
+    return updateOrg(orgId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateOrgMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateOrg>>
+>;
+export type UpdateOrgMutationBody = BodyType<OrgUpdateRequest>;
+export type UpdateOrgMutationError = ErrorType<HTTPValidationError>;
+
+/**
+ * @summary Update Org
+ */
+export const useUpdateOrg = <
+  TError = ErrorType<HTTPValidationError>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateOrg>>,
+      TError,
+      { orgId: string; data: BodyType<OrgUpdateRequest> },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateOrg>>,
+  TError,
+  { orgId: string; data: BodyType<OrgUpdateRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateOrgMutationOptions(options), queryClient);
 };
