@@ -2,12 +2,28 @@ import asyncio
 import logging
 import warnings
 
+# Never hit a real LLM provider in tests. Any accidental model request (an
+# agent that was not overridden with a fake model) fails loudly instead of
+# reaching Google.
+import pydantic_ai.models as _pydantic_ai_models
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from testcontainers.postgres import PostgresContainer
 
+from app.ai import agents
+from app.config import settings
 from app.database import Base, get_db
+from tests.ai_support import draft_model, review_model
+
+_pydantic_ai_models.ALLOW_MODEL_REQUESTS = False
+
+# The AI tests run with this fake key (never a real one) so the runner does not
+# take the "disabled" branch, and with both cached agents overridden by a
+# deterministic FunctionModel. Tests that need the disabled state or a failing
+# model override this fixture locally (monkeypatch the key to "" or nest an
+# ``agent.override(...)``), so no network is ever needed.
+AI_FAKE_KEY = "test-key-cadence-offline"
 
 # Suppress SQLAlchemy pool connection errors during test cleanup
 logging.getLogger("sqlalchemy.pool.impl.AsyncAdaptedQueuePool").setLevel(
@@ -41,6 +57,25 @@ warnings.filterwarnings(
 
 # Suppress asyncpg connection closure warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="asyncpg.*")
+
+
+@pytest.fixture(autouse=True)
+def stub_ai(monkeypatch):
+    """Make the AI features usable offline for every test.
+
+    (a) Seed a fake ``GOOGLE_API_KEY`` on the settings object the runner reads,
+    so the request never takes the "disabled" branch; and (b) override *both*
+    cached agents (the same objects the routes call) with a deterministic
+    ``FunctionModel`` returning a valid ``PlanReview`` / ``PlanDraft``. The
+    override is entered on the cached singleton, so tests can nest their own
+    ``agent.override(model=...)`` to exercise a failure mode.
+    """
+    monkeypatch.setattr(settings, "GOOGLE_API_KEY", AI_FAKE_KEY)
+    with (
+        agents.build_review_agent().override(model=review_model()),
+        agents.build_draft_agent().override(model=draft_model()),
+    ):
+        yield
 
 
 @pytest.fixture(scope="session")
@@ -102,8 +137,10 @@ async def async_client(test_engine, session_factory):
 
     # Override the database dependency
     from app.main import app as fastapi_app
+    from app.main import app_api
 
     fastapi_app.dependency_overrides[get_db] = get_test_db
+    app_api.dependency_overrides[get_db] = get_test_db
 
     # Also override the database engine at the module level to prevent conflicts
     import app.database
@@ -121,6 +158,7 @@ async def async_client(test_engine, session_factory):
 
     # Cleanup - ensure proper order and error handling
     fastapi_app.dependency_overrides.clear()
+    app_api.dependency_overrides.clear()
 
     # Restore original database setup
     app.database.async_engine = original_engine

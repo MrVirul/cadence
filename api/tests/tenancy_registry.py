@@ -353,4 +353,31 @@ TENANCY_REGISTRY: list[RouteCase] = [
         body_for_a=lambda world: {"shipped": True},
         team_member_status=403,
     ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/ai/plan-review",
+        min_role="member",
+        ids_for_a=lambda world: {},
+        body_for_a=lambda world: {
+            "week_start": world.next_week_start,
+            "tasks": [
+                {
+                    "ref": "t1",
+                    "kind": "main",
+                    "title": "Checkout handles expired cards",
+                    "why": "Users are blocked at payment",
+                }
+            ],
+        },
+    ),
+    RouteCase(
+        method="POST",
+        path="/app/orgs/{org_id}/ai/plan-draft",
+        min_role="member",
+        ids_for_a=lambda world: {},
+        body_for_a=lambda world: {
+            "week_start": world.next_week_start,
+            "notes": "Ship checkout, track conversion, and update changelog",
+        },
+    ),
 ]
