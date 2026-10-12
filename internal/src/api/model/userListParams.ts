@@ -8,6 +8,10 @@
 
 export type UserListParams = {
   /**
+   * Search email or name
+   */
+  q?: string | null;
+  /**
    * @minimum 1
    * @maximum 100
    */

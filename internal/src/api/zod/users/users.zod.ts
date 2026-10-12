@@ -10,20 +10,43 @@ import * as zod from "zod";
 /**
  * @summary Get Current Internal User
  */
-export const GetCurrentInternalUserResponse = zod.object({
-  id: zod.string(),
-  created_at: zod.string().datetime({ offset: true }),
-  updated_at: zod.union([zod.string().datetime({ offset: true }), zod.null()]),
-  first_name: zod.string(),
-  last_name: zod.string(),
-  email: zod.string(),
-  is_admin: zod.boolean(),
-  is_active: zod.boolean(),
-});
+export const GetCurrentInternalUserResponse = zod
+  .object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    is_admin: zod.boolean(),
+    is_active: zod.boolean(),
+    orgs: zod
+      .array(
+        zod
+          .object({
+            id: zod.string(),
+            name: zod.string(),
+            role: zod.string(),
+          })
+          .describe(
+            "An org the user belongs to and their role there (metadata only)."
+          )
+      )
+      .optional(),
+  })
+  .describe(
+    "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+  );
 
 /**
  * @summary User List
  */
+export const userListQueryQOneMax = 100;
+
 export const userListQueryLimitDefault = 50;
 export const userListQueryLimitMax = 100;
 
@@ -31,6 +54,10 @@ export const userListQueryOffsetDefault = 0;
 export const userListQueryOffsetMin = 0;
 
 export const UserListQueryParams = zod.object({
+  q: zod
+    .union([zod.string().max(userListQueryQOneMax), zod.null()])
+    .optional()
+    .describe("Search email or name"),
   limit: zod
     .number()
     .int()
@@ -46,19 +73,37 @@ export const UserListQueryParams = zod.object({
 
 export const UserListResponse = zod.object({
   items: zod.array(
-    zod.object({
-      id: zod.string(),
-      created_at: zod.string().datetime({ offset: true }),
-      updated_at: zod.union([
-        zod.string().datetime({ offset: true }),
-        zod.null(),
-      ]),
-      first_name: zod.string(),
-      last_name: zod.string(),
-      email: zod.string(),
-      is_admin: zod.boolean(),
-      is_active: zod.boolean(),
-    })
+    zod
+      .object({
+        id: zod.string(),
+        created_at: zod.string().datetime({ offset: true }),
+        updated_at: zod.union([
+          zod.string().datetime({ offset: true }),
+          zod.null(),
+        ]),
+        first_name: zod.string(),
+        last_name: zod.string(),
+        name: zod.string(),
+        email: zod.string(),
+        is_admin: zod.boolean(),
+        is_active: zod.boolean(),
+        orgs: zod
+          .array(
+            zod
+              .object({
+                id: zod.string(),
+                name: zod.string(),
+                role: zod.string(),
+              })
+              .describe(
+                "An org the user belongs to and their role there (metadata only)."
+              )
+          )
+          .optional(),
+      })
+      .describe(
+        "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+      )
   ),
   total: zod.number().int(),
   limit: zod.number().int(),
@@ -86,16 +131,76 @@ export const UserCreateBody = zod.object({
   is_active: zod.boolean().default(userCreateBodyIsActiveDefault),
 });
 
-export const UserCreateResponse = zod.object({
-  id: zod.string(),
-  created_at: zod.string().datetime({ offset: true }),
-  updated_at: zod.union([zod.string().datetime({ offset: true }), zod.null()]),
-  first_name: zod.string(),
-  last_name: zod.string(),
-  email: zod.string(),
-  is_admin: zod.boolean(),
-  is_active: zod.boolean(),
+export const UserCreateResponse = zod
+  .object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    is_admin: zod.boolean(),
+    is_active: zod.boolean(),
+    orgs: zod
+      .array(
+        zod
+          .object({
+            id: zod.string(),
+            name: zod.string(),
+            role: zod.string(),
+          })
+          .describe(
+            "An org the user belongs to and their role there (metadata only)."
+          )
+      )
+      .optional(),
+  })
+  .describe(
+    "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+  );
+
+/**
+ * @summary User Detail
+ */
+export const UserDetailParams = zod.object({
+  user_id: zod.string().uuid(),
 });
+
+export const UserDetailResponse = zod
+  .object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    is_admin: zod.boolean(),
+    is_active: zod.boolean(),
+    orgs: zod
+      .array(
+        zod
+          .object({
+            id: zod.string(),
+            name: zod.string(),
+            role: zod.string(),
+          })
+          .describe(
+            "An org the user belongs to and their role there (metadata only)."
+          )
+      )
+      .optional(),
+  })
+  .describe(
+    "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+  );
 
 /**
  * @summary User Update
@@ -120,16 +225,37 @@ export const UserUpdateBody = zod.object({
   is_active: zod.union([zod.boolean(), zod.null()]).optional(),
 });
 
-export const UserUpdateResponse = zod.object({
-  id: zod.string(),
-  created_at: zod.string().datetime({ offset: true }),
-  updated_at: zod.union([zod.string().datetime({ offset: true }), zod.null()]),
-  first_name: zod.string(),
-  last_name: zod.string(),
-  email: zod.string(),
-  is_admin: zod.boolean(),
-  is_active: zod.boolean(),
-});
+export const UserUpdateResponse = zod
+  .object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    is_admin: zod.boolean(),
+    is_active: zod.boolean(),
+    orgs: zod
+      .array(
+        zod
+          .object({
+            id: zod.string(),
+            name: zod.string(),
+            role: zod.string(),
+          })
+          .describe(
+            "An org the user belongs to and their role there (metadata only)."
+          )
+      )
+      .optional(),
+  })
+  .describe(
+    "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+  );
 
 /**
  * @summary User Delete
@@ -139,6 +265,96 @@ export const UserDeleteParams = zod.object({
 });
 
 export const UserDeleteResponse = zod.void();
+
+/**
+ * @summary User Deactivate
+ */
+export const UserDeactivateParams = zod.object({
+  user_id: zod.string().uuid(),
+});
+
+export const userDeactivateBodyReasonMin = 3;
+export const userDeactivateBodyReasonMax = 500;
+
+export const UserDeactivateBody = zod
+  .object({
+    reason: zod
+      .string()
+      .min(userDeactivateBodyReasonMin)
+      .max(userDeactivateBodyReasonMax),
+  })
+  .describe("A deactivation must carry a reason for the audit trail.");
+
+export const UserDeactivateResponse = zod
+  .object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    is_admin: zod.boolean(),
+    is_active: zod.boolean(),
+    orgs: zod
+      .array(
+        zod
+          .object({
+            id: zod.string(),
+            name: zod.string(),
+            role: zod.string(),
+          })
+          .describe(
+            "An org the user belongs to and their role there (metadata only)."
+          )
+      )
+      .optional(),
+  })
+  .describe(
+    "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+  );
+
+/**
+ * @summary User Reactivate
+ */
+export const UserReactivateParams = zod.object({
+  user_id: zod.string().uuid(),
+});
+
+export const UserReactivateResponse = zod
+  .object({
+    id: zod.string(),
+    created_at: zod.string().datetime({ offset: true }),
+    updated_at: zod.union([
+      zod.string().datetime({ offset: true }),
+      zod.null(),
+    ]),
+    first_name: zod.string(),
+    last_name: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    is_admin: zod.boolean(),
+    is_active: zod.boolean(),
+    orgs: zod
+      .array(
+        zod
+          .object({
+            id: zod.string(),
+            name: zod.string(),
+            role: zod.string(),
+          })
+          .describe(
+            "An org the user belongs to and their role there (metadata only)."
+          )
+      )
+      .optional(),
+  })
+  .describe(
+    "A user as staff see them: account metadata and org roles.\n\n``first_name``\/``last_name``\/``is_admin``\/``created_at`` are kept so the\nexisting template console keeps compiling; ``name`` and ``orgs`` are the\nbrief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part\nof a user response."
+  );
 
 /**
  * @summary User Change Password

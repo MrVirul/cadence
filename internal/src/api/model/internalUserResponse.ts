@@ -5,14 +5,25 @@
  * Internal api endpoints
  * OpenAPI spec version: 0.1.0
  */
+import type { UserOrgRef } from "./userOrgRef";
 
+/**
+ * A user as staff see them: account metadata and org roles.
+ *
+ * ``first_name``/``last_name``/``is_admin``/``created_at`` are kept so the
+ * existing template console keeps compiling; ``name`` and ``orgs`` are the
+ * brief's shape (root ``AGENTS.md`` §6). No plan, task or AI text is ever part
+ * of a user response.
+ */
 export interface InternalUserResponse {
   id: string;
   created_at: string;
   updated_at: string | null;
   first_name: string;
   last_name: string;
+  name: string;
   email: string;
   is_admin: boolean;
   is_active: boolean;
+  orgs?: UserOrgRef[];
 }
