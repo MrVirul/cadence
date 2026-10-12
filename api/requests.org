@@ -147,6 +147,82 @@ DELETE /orgs/ORG_ID/invites/INVITE_ID
 # Returns: 404 not_found (invite not in this org)
 # Requires: admin or owner
 
+** List teams (org-scoped)
+GET /orgs/ORG_ID/teams?limit=50&offset=0
+# Returns: 200 OK with {items, total, limit, offset}; items are
+# {id, name, lead_membership_id, member_count}
+# Note: admin/owner see all teams; a plain member sees only teams they belong to
+# Requires: a member of the org
+
+** Create team (org-scoped)
+POST /orgs/ORG_ID/teams
+Content-Type: application/json
+# Returns: 201 Created with the team
+# Note: if lead_membership_id is set, that membership is added to the team too
+# Errors: 409 conflict (name already used in this org), 404 not_found
+# (lead_membership_id outside this org), 422 validation_error
+# Requires: admin or owner
+
+{
+  "name": "Platform",
+  "lead_membership_id": "MEMBERSHIP_ID"
+}
+
+** Get team (org-scoped)
+GET /orgs/ORG_ID/teams/TEAM_ID
+# Returns: 200 OK with {id, name, lead_membership_id, member_count, members[]};
+# members are {membership_id, user: {id, name, email}, role}
+# Requires: admin/owner or a member of this team; 404 not_found otherwise
+
+** Rename team (org-scoped)
+PATCH /orgs/ORG_ID/teams/TEAM_ID
+Content-Type: application/json
+# Returns: 200 OK with the renamed team
+# Errors: 403 forbidden (team member who is not admin/owner),
+# 404 not_found (not a member of the team), 409 conflict (duplicate name),
+# 422 validation_error
+# Requires: admin or owner
+
+{
+  "name": "Platform Core"
+}
+
+** Delete team (org-scoped)
+DELETE /orgs/ORG_ID/teams/TEAM_ID
+# Returns: 204 No Content (team_members rows cascade)
+# Errors: 403 forbidden (team member who is not admin/owner),
+# 404 not_found (not a member of the team),
+# 409 conflict (team still has plans)
+# Requires: admin or owner
+
+** Replace team members (org-scoped)
+PUT /orgs/ORG_ID/teams/TEAM_ID/members
+Content-Type: application/json
+# Returns: 200 OK with the team + refreshed members[]
+# Note: replaces the whole set in one transaction; duplicates are ignored; if
+# the current lead is left out, lead_membership_id is cleared
+# Errors: 403 forbidden (team member who is not admin/owner),
+# 404 not_found (team not in this org, or ANY membership_id outside this org —
+# nothing is written), 422 validation_error
+# Requires: admin or owner
+
+{
+  "membership_ids": ["MEMBERSHIP_ID", "MEMBERSHIP_ID"]
+}
+
+** Set team lead (org-scoped)
+PUT /orgs/ORG_ID/teams/TEAM_ID/lead
+Content-Type: application/json
+# Returns: 200 OK with the team
+# Errors: 403 forbidden (team member who is not admin/owner),
+# 404 not_found (team or membership outside this org),
+# 422 validation_error (the membership is not a member of the team)
+# Requires: admin or owner
+
+{
+  "membership_id": "MEMBERSHIP_ID"
+}
+
 * Internal API                                                            :verb:
 Template http://localhost:8000/internal
 # Access-Token: Bearer TOKEN

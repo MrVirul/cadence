@@ -118,7 +118,12 @@ require_org_owner = Annotated[OrgContext, Depends(_require_org_owner)]
 
 
 async def get_in_org(
-    session: AsyncSession, model: type[Any], id_: Any, org_id: uuid.UUID
+    session: AsyncSession,
+    model: type[Any],
+    id_: Any,
+    org_id: uuid.UUID,
+    *,
+    for_update: bool = False,
 ) -> Any:
     """Fetch a tenant row by id, but only when it belongs to ``org_id``.
 
@@ -126,10 +131,15 @@ async def get_in_org(
     ``org_id`` explicitly): a row that exists in another org is
     indistinguishable from a missing one (``404 not_found``), so callers can
     never learn that a cross-org resource exists.
+
+    ``for_update=True`` adds ``SELECT ... FOR UPDATE`` so a caller can serialize
+    concurrent writes on the row for the rest of the request's transaction
+    (services flush, the router commits).
     """
-    row = await session.scalar(
-        select(model).where(model.id == id_, model.org_id == org_id)
-    )
+    statement = select(model).where(model.id == id_, model.org_id == org_id)
+    if for_update:
+        statement = statement.with_for_update()
+    row = await session.scalar(statement)
     if row is None:
         raise ResourceNotFoundException("Resource not found")
     return row

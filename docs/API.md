@@ -324,7 +324,7 @@ One sentence each; each maps to a pytest assertion.
 37. Two concurrent `POST /app/invites/{token}/accept` for the same invite: exactly one returns success, the other `404 invite_invalid`, and only one membership is created.
 38. Two concurrent `POST /app/orgs/{org}/plans/{id}/submit`: exactly one returns `200`, the other `409 invalid_transition`, and exactly one `submitted` `plan_events` row exists.
 39. Two concurrent `POST /app/orgs/{org}/plans` with the same `(membership_id, week_start)`: exactly one returns `201`, the other `409 conflict` (DB unique constraint).
-40. Two concurrent `PUT /teams/{id}/members` replacing the set do not leave a dangling lead; if the lead is removed the request either clears `lead_membership_id` or returns `422`.
+40. Two concurrent `PUT /teams/{id}/members` replacing the set do not leave a dangling lead; if the lead is removed, the request clears `lead_membership_id` (never `422`; the team row is locked `FOR UPDATE` so the two requests serialize).
 
 ### Invites
 

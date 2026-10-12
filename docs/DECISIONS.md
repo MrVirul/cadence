@@ -54,3 +54,10 @@ Launchbase folder-level `AGENTS.md` disagree, the **root brief wins**.
 - 2026-10-11 — Known MVP limit: removing (or deactivating) a member also **deletes that member's plans** (the `memberships` cascade) — simplest consistent behaviour; historical team metrics for departed members are not preserved.
 - 2026-10-11 — A plan keeps its `team_id` if the author later leaves that team, and an org owner/admin can always approve it — avoids orphaned/unapprovable plans when team membership changes after submission.
 - 2026-10-12 — 422 `validation_error` folds each field into `detail` as `"<field>: <message>"` entries joined by `"; "` (errors without a field keep just their message) — the UI can still show field-scoped errors next to inputs while the body stays a single string per the `{detail, code}` shape.
+
+## Phase 3 — teams
+
+- 2026-10-12 — Creating a team with `lead_membership_id` also adds that membership to the team (`team_members`) in the same request — "the lead must be a member of the team" (brief §4) would otherwise be violated by the create call itself; `PUT .../lead` still requires the membership to already be on the team (`422` otherwise).
+- 2026-10-12 — Replacing a team's member set (`PUT .../members`) that drops the current lead **clears** `lead_membership_id` (never `422`) and the team row is locked `SELECT ... FOR UPDATE` first — clearing is the least surprising behaviour, and the lock serializes two concurrent replacements so no dangling lead can survive (API.md rule 40).
+- 2026-10-12 — Team write routes answer **404** to an org member who is not on the team and **403** to a member of the team who is not an admin/owner; team reads follow the same read-access split (`GET .../teams/{id}` is 404 for a non-member, 200 for a teammate or admin) — consistent with the global 404-vs-403 rule (no-read-access → 404, can-read-but-cannot-act → 403).
+- 2026-10-12 — Added `ValidationException` (422 `validation_error`) for service-level business-rule rejections that are not Pydantic schema errors (e.g. "team lead must be a member") — keeps one error code for all 422s so the UI switches once.

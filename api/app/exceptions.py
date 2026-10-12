@@ -116,6 +116,21 @@ class RoleForbiddenException(APIException):
         )
 
 
+class ValidationException(APIException):
+    """A business-rule rejection that is not a Pydantic schema error.
+
+    Uses the same ``422 validation_error`` body as schema validation so callers
+    switch on one code (docs/API.md conventions).
+    """
+
+    def __init__(self, message: str = "Invalid request"):
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            code="validation_error",
+            message=message,
+        )
+
+
 class LastOwnerException(APIException):
     def __init__(self) -> None:
         super().__init__(

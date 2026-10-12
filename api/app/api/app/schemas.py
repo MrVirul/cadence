@@ -136,3 +136,37 @@ class InviteResponse(Model):
     role: InviteRole
     expires_at: DateTime
     url: str
+
+
+class TeamCreateRequest(RequestModel):
+    name: str = Field(min_length=1, max_length=100)
+    lead_membership_id: UUID4 | None = None
+
+
+class TeamUpdateRequest(RequestModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+
+
+class TeamMembersRequest(RequestModel):
+    membership_ids: list[UUID4] = Field(default_factory=list)
+
+
+class TeamLeadRequest(RequestModel):
+    membership_id: UUID4
+
+
+class TeamResponse(Model):
+    id: UUID4
+    name: str
+    lead_membership_id: UUID4 | None
+    member_count: int
+
+
+class TeamMemberResponse(Model):
+    membership_id: UUID4
+    user: MemberUser
+    role: OrgRole
+
+
+class TeamDetailResponse(TeamResponse):
+    members: list[TeamMemberResponse]
