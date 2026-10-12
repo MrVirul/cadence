@@ -57,6 +57,15 @@ class User(IdMixin, TimestampMixin, Base):
         """`is_admin` means platform staff. New code uses this name only."""
         return self.is_admin
 
+    @property
+    def name(self) -> str:
+        """Full display name ("Ada Lovelace"); read-only.
+
+        The internal console's user shape carries a single ``name`` (brief §6)
+        while the table stores ``first_name``/``last_name``.
+        """
+        return f"{self.first_name} {self.last_name}".strip()
+
 
 class Organization(IdMixin, Base):
     __tablename__ = "organizations"

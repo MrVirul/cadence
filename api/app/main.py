@@ -78,7 +78,10 @@ internal_api = FastAPI(
     openapi_tags=[
         {"name": "meta", "description": "Health and service metadata"},
         {"name": "auth", "description": "Authentication and session"},
+        {"name": "orgs", "description": "Organizations (metadata and counts)"},
         {"name": "users", "description": "User endpoints"},
+        {"name": "ai-usage", "description": "AI usage metrics"},
+        {"name": "audit", "description": "Staff action audit log"},
     ],
     openapi_url=openapi_url,
     docs_url=docs_url,

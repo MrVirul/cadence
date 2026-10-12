@@ -135,12 +135,15 @@ async def async_client(test_engine, session_factory):
         async with session_factory() as session:
             yield session
 
-    # Override the database dependency
+    # Override the database dependency on every mounted sub-app: overrides are
+    # per-app, so setting them on the root app alone leaves /app and /internal
+    # pointing at the real database.
     from app.main import app as fastapi_app
-    from app.main import app_api
+    from app.main import app_api, internal_api
 
     fastapi_app.dependency_overrides[get_db] = get_test_db
     app_api.dependency_overrides[get_db] = get_test_db
+    internal_api.dependency_overrides[get_db] = get_test_db
 
     # Also override the database engine at the module level to prevent conflicts
     import app.database
@@ -159,6 +162,7 @@ async def async_client(test_engine, session_factory):
     # Cleanup - ensure proper order and error handling
     fastapi_app.dependency_overrides.clear()
     app_api.dependency_overrides.clear()
+    internal_api.dependency_overrides.clear()
 
     # Restore original database setup
     app.database.async_engine = original_engine

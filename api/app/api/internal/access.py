@@ -26,7 +26,7 @@ async def get_current_internal_user(
     # Token audience already restricts callers to the internal surface; the flag is
     # a second gate so a non-admin who somehow holds an internal-audience token
     # (e.g. a stale grant) is still refused.
-    if not user.is_admin:
+    if not user.is_platform_staff:
         raise http_admin_required_exception
     return user
 

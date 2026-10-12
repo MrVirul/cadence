@@ -107,13 +107,20 @@ class OrgSuspendedException(APIException):
         )
 
 
-class RoleForbiddenException(APIException):
-    def __init__(self) -> None:
+class ForbiddenException(APIException):
+    """Authenticated but not permitted, with a specific reason (403 forbidden)."""
+
+    def __init__(self, message: str) -> None:
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             code="forbidden",
-            message="You do not have permission to perform this action",
+            message=message,
         )
+
+
+class RoleForbiddenException(ForbiddenException):
+    def __init__(self) -> None:
+        super().__init__("You do not have permission to perform this action")
 
 
 class ValidationException(APIException):

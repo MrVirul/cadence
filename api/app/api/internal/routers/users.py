@@ -7,10 +7,12 @@ from app.api.internal.schemas import (
     InternalUserResponse,
     UserChangePasswordRequest,
     UserCreateRequest,
+    UserDeactivateRequest,
     UsersListResponse,
     UserUpdateRequest,
 )
 from app.database import DBSession
+from app.services.internal import InternalUserService
 from app.services.users import UserService
 
 router = APIRouter()
@@ -27,16 +29,53 @@ async def get_current_internal_user(
 async def user_list(
     current_user: CurrentInternalUser,
     session: DBSession,
+    q: str | None = Query(None, max_length=100, description="Search email or name"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ) -> UsersListResponse:
-    users, total = await UserService(session).list_users(limit=limit, offset=offset)
+    items, total = await InternalUserService(session).list_users(
+        q=q, limit=limit, offset=offset
+    )
     return UsersListResponse(
-        items=[InternalUserResponse.model_validate(u) for u in users],
+        items=[InternalUserResponse(**item) for item in items],
         total=total,
         limit=limit,
         offset=offset,
     )
+
+
+@router.get("/users/{user_id}", tags=["users"])
+async def user_detail(
+    current_user: CurrentInternalUser,
+    session: DBSession,
+    user_id: uuid.UUID,
+) -> InternalUserResponse:
+    return InternalUserResponse(**await InternalUserService(session).get_user(user_id))
+
+
+@router.post("/users/{user_id}/deactivate", tags=["users"])
+async def user_deactivate(
+    current_user: CurrentInternalUser,
+    session: DBSession,
+    user_id: uuid.UUID,
+    data: UserDeactivateRequest,
+) -> InternalUserResponse:
+    user = await InternalUserService(session).deactivate(
+        user_id, staff=current_user, reason=data.reason
+    )
+    await session.commit()
+    return InternalUserResponse.model_validate(user)
+
+
+@router.post("/users/{user_id}/reactivate", tags=["users"])
+async def user_reactivate(
+    current_user: CurrentInternalUser,
+    session: DBSession,
+    user_id: uuid.UUID,
+) -> InternalUserResponse:
+    user = await InternalUserService(session).reactivate(user_id, staff=current_user)
+    await session.commit()
+    return InternalUserResponse.model_validate(user)
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED, tags=["users"])
