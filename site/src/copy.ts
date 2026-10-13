@@ -186,6 +186,49 @@ export const copy = {
       "Approve or send back with one comment.",
       "Track how many weeks each person shipped.",
     ],
+    plans: {
+      "Alex Morgan": {
+        role: "Team Lead",
+        mainTask: "Migrate Postgres connection pool to PgBouncer",
+        why: "Connection spikes caused latency spikes during morning traffic.",
+        subGoals: [
+          "Configure PgBouncer on RDS read-replica",
+          "Benchmark 5,000 concurrent client connections",
+        ],
+        gtmGoal: "Document failover runbook in team wiki",
+        aiSummary: "Clear target architecture and measurable metric.",
+      },
+      "Sarah Chen": {
+        role: "Frontend Engineer",
+        mainTask: "Checkout handles expired cards, confirmed on staging",
+        why: "Failed renewals cause our top support tickets this month.",
+        subGoals: [
+          "Handle expired cards in Stripe webhook listener",
+          "Add unit tests for payment failure retry logic",
+        ],
+        gtmGoal: "Post changelog update for failed renewal flow",
+        aiSummary: "Specific and verifiable commitment.",
+      },
+      "Priya Nair": {
+        role: "Backend Engineer",
+        mainTask: "Audit log streaming endpoint for enterprise customers",
+        why: "Required for SOC 2 Type II audit compliance this quarter.",
+        subGoals: [
+          "Implement HMAC signature verification on webhook egress",
+          "Add batching queue with exponential backoff",
+        ],
+        gtmGoal: "Share API docs draft with security team",
+        aiSummary: "Unblocks enterprise compliance requirement.",
+      },
+      "David Kim": {
+        role: "Fullstack Engineer",
+        mainTask: "Draft in progress",
+        why: "Plan not yet submitted for this week.",
+        subGoals: [],
+        gtmGoal: "",
+        aiSummary: "Awaiting submission.",
+      },
+    },
   },
   closing: {
     heading: "Plan your next week in Cadence.",

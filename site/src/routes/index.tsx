@@ -1,9 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  FolderKanban,
+  History,
+  MessageSquare,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Logo } from "@/components/logo";
+import { Logo, Logomark } from "@/components/logo";
 import { APP_URL } from "@/lib/config";
 import { copy } from "@/copy";
 
@@ -490,201 +501,8 @@ export function HomePage() {
               </h2>
             </div>
 
-            <div className="mt-10 grid items-start gap-10 lg:grid-cols-12 min-w-0">
-              {/* Table Column */}
-              <div className="lg:col-span-8 min-w-0 max-w-full">
-                <div className="rounded-[12px] border border-border bg-card overflow-hidden w-full max-w-full">
-                  <div className="border-b border-border bg-secondary/50 px-4 py-3 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-foreground">
-                      {copy.forLeads.tableTitle}
-                    </span>
-                  </div>
-
-                  {/* Scroll container for responsiveness down to 360px */}
-                  <div className="overflow-x-auto w-full max-w-full">
-                    <table className="w-full min-w-[540px] text-left text-sm">
-                      <thead className="border-b border-border bg-secondary/30 text-xs font-semibold text-muted-foreground">
-                        <tr>
-                          <th scope="col" className="px-4 py-3">
-                            {copy.forLeads.headers.member}
-                          </th>
-                          <th scope="col" className="px-4 py-3">
-                            {copy.forLeads.headers.status}
-                          </th>
-                          <th scope="col" className="px-4 py-3">
-                            {copy.forLeads.headers.tasks}
-                          </th>
-                          <th scope="col" className="px-4 py-3">
-                            {copy.forLeads.headers.shipped}
-                          </th>
-                          <th scope="col" className="px-4 py-3">
-                            {copy.forLeads.headers.recentWeeks}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border text-foreground">
-                        {copy.forLeads.rows.map((row, rowIdx) => (
-                          <tr
-                            key={row.name}
-                            className="team-row hover:bg-secondary/40 transition-colors duration-150"
-                            style={{ transitionDelay: `${rowIdx * 70}ms` }}
-                          >
-                            <td className="px-4 py-3.5">
-                              <div className="flex items-center gap-2.5 font-medium text-foreground">
-                                <Avatar
-                                  seed={row.name}
-                                  size={26}
-                                  className="team-avatar"
-                                />
-                                <div className="flex items-center gap-1.5">
-                                  <span>{row.name}</span>
-                                  {row.isLead && (
-                                    <Badge
-                                      variant="secondary"
-                                      className="px-1.5 py-0 text-[10px] font-semibold border-border bg-secondary text-foreground"
-                                    >
-                                      Lead
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3.5">
-                              {row.statusVariant === "done" && (
-                                <span className="inline-flex items-center rounded-[6px] border border-emerald-200 bg-[#F0FDF4] px-2 py-0.5 text-xs font-medium text-[#15803D]">
-                                  {row.status}
-                                </span>
-                              )}
-                              {row.statusVariant === "submitted" && (
-                                <span className="inline-flex items-center rounded-[6px] border border-amber-200 bg-[#FFFBEB] px-2 py-0.5 text-xs font-medium text-[#92400E]">
-                                  {row.status}
-                                </span>
-                              )}
-                              {row.statusVariant === "approved" && (
-                                <span className="inline-flex items-center rounded-[6px] border border-indigo-200 bg-[#F5F3FF] px-2 py-0.5 text-xs font-medium text-primary">
-                                  {row.status}
-                                </span>
-                              )}
-                              {row.statusVariant === "not_started" && (
-                                <span className="inline-flex items-center rounded-[6px] border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                                  {row.status}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5 tabular-nums text-xs font-medium text-foreground">
-                              {row.tasks}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              {row.shipped ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium text-[#15803D]">
-                                  <Check className="size-3.5 text-[#15803D]" />
-                                  Shipped
-                                </span>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">
-                                  —
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              {/* 12px marks: shipped = filled green square, not shipped = outlined square with x, no plan = small grey dot */}
-                              <div
-                                className="flex items-center gap-1.5"
-                                aria-label="Last 6 weeks history"
-                              >
-                                {row.history.map((h, hIdx) => (
-                                  <span
-                                    key={hIdx}
-                                    className="size-3 flex items-center justify-center history-mark"
-                                    style={{
-                                      transitionDelay: `${rowIdx * 70 + hIdx * 50}ms`,
-                                    }}
-                                    title={
-                                      h === "shipped"
-                                        ? "Shipped"
-                                        : h === "missed"
-                                          ? "Not shipped"
-                                          : "No plan"
-                                    }
-                                  >
-                                    {h === "shipped" ? (
-                                      <span className="size-3 rounded-[2px] bg-[#15803D]" />
-                                    ) : h === "missed" ? (
-                                      <span className="size-3 rounded-[2px] border border-border bg-card flex items-center justify-center text-[8px] font-semibold text-muted-foreground leading-none select-none">
-                                        ×
-                                      </span>
-                                    ) : (
-                                      <span className="size-1.5 rounded-full bg-[#94A3B8]" />
-                                    )}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Caption + Clearly Readable Legend */}
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-                  <span className="text-muted-foreground font-medium">
-                    {copy.forLeads.caption}
-                  </span>
-                  <div className="flex items-center gap-4 text-xs">
-                    <span className="flex items-center gap-1.5">
-                      <span
-                        className="size-3 rounded-[2px] bg-[#15803D]"
-                        aria-hidden="true"
-                      />
-                      <span className="font-medium text-foreground">
-                        {copy.forLeads.legend.shipped}
-                      </span>
-                    </span>
-                    <span aria-hidden="true" className="text-border">
-                      •
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span
-                        className="size-3 rounded-[2px] border border-border bg-card flex items-center justify-center text-[8px] font-semibold text-muted-foreground leading-none"
-                        aria-hidden="true"
-                      >
-                        ×
-                      </span>
-                      <span className="font-medium text-foreground">
-                        {copy.forLeads.legend.notShipped}
-                      </span>
-                    </span>
-                    <span aria-hidden="true" className="text-border">
-                      •
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span
-                        className="size-1.5 rounded-full bg-[#94A3B8]"
-                        aria-hidden="true"
-                      />
-                      <span className="font-medium text-foreground">
-                        {copy.forLeads.legend.noPlan}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Plain Benefits List Column */}
-              <div className="lg:col-span-4 text-left">
-                <ul className="space-y-4 text-sm sm:text-base text-foreground">
-                  {copy.forLeads.benefits.map((benefit, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <span className="text-primary font-semibold select-none">
-                        •
-                      </span>
-                      <span>{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="mt-10 min-w-0">
+              <LeadDashboardMockup />
             </div>
           </div>
         </section>
@@ -792,6 +610,556 @@ export function HomePage() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function LeadDashboardMockup() {
+  const [selectedMember, setSelectedMember] = useState<string>("Sarah Chen");
+  const [approvedMap, setApprovedMap] = useState<Record<string, boolean>>({
+    "Alex Morgan": true,
+    "Priya Nair": true,
+    "Sarah Chen": false,
+  });
+  const [feedbackNotice, setFeedbackNotice] = useState<string | null>(null);
+
+  const plans = copy.forLeads.plans;
+  const plan = plans[selectedMember as keyof typeof plans];
+  const isSelectedApproved = approvedMap[selectedMember] ?? false;
+
+  const handleApprove = () => {
+    setApprovedMap((prev) => ({
+      ...prev,
+      [selectedMember]: !prev[selectedMember],
+    }));
+    setFeedbackNotice(null);
+  };
+
+  const handleSendBack = () => {
+    setApprovedMap((prev) => ({
+      ...prev,
+      [selectedMember]: false,
+    }));
+    setFeedbackNotice(
+      `Sent back to ${selectedMember}: "Please add staging verification steps before approval."`
+    );
+  };
+
+  const approvedCount = Object.values(approvedMap).filter(Boolean).length;
+
+  return (
+    <div className="w-full">
+      {/* App Window Frame */}
+      <div className="rounded-[14px] border border-border bg-card overflow-hidden shadow-[0_20px_50px_rgba(11,11,20,0.08)]">
+        {/* macOS Browser Chrome */}
+        <div className="flex items-center justify-between border-b border-border bg-secondary/60 px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <span className="size-2.5 rounded-full bg-[#EF4444]" />
+            <span className="size-2.5 rounded-full bg-[#F59E0B]" />
+            <span className="size-2.5 rounded-full bg-[#10B981]" />
+          </div>
+          <div className="flex items-center gap-1.5 rounded-[6px] border border-border/80 bg-background/80 px-3 py-1 text-xs font-mono text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-[#15803D]" />
+            <span>cadence.app/northwind/platform/week/2026-10-12</span>
+          </div>
+          <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">
+            Lead Workspace
+          </div>
+        </div>
+
+        {/* Dashboard Workspace */}
+        <div className="flex flex-col lg:flex-row min-h-[480px]">
+          {/* Mini Sidebar */}
+          <div className="hidden lg:flex w-52 shrink-0 flex-col border-r border-border bg-secondary/30 p-3 text-xs text-left">
+            {/* Org Switcher */}
+            <div className="flex items-center justify-between rounded-[6px] border border-border bg-card px-2.5 py-2 font-medium text-foreground">
+              <div className="flex items-center gap-2 truncate">
+                <Logomark className="h-4 w-4" />
+                <span className="truncate font-semibold text-xs">
+                  Northwind Labs
+                </span>
+              </div>
+              <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
+            </div>
+
+            {/* Nav links */}
+            <div className="mt-4 space-y-1">
+              <div className="flex items-center gap-2 rounded-[6px] px-2 py-1.5 text-muted-foreground hover:bg-secondary">
+                <CalendarDays className="size-3.5" />
+                <span>My week</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-[6px] px-2 py-1.5 text-muted-foreground hover:bg-secondary">
+                <History className="size-3.5" />
+                <span>History</span>
+              </div>
+            </div>
+
+            {/* Teams Section */}
+            <div className="mt-5">
+              <div className="px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Teams
+              </div>
+              <div className="mt-1 space-y-0.5">
+                <div className="flex items-center justify-between rounded-[6px] bg-primary/10 px-2 py-1.5 font-semibold text-primary">
+                  <div className="flex items-center gap-2">
+                    <Users className="size-3.5" />
+                    <span>Platform</span>
+                  </div>
+                  <span className="rounded bg-primary/20 px-1 py-0.5 text-[9px] font-bold text-primary leading-none">
+                    LEAD
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 rounded-[6px] px-2 py-1.5 text-muted-foreground hover:bg-secondary">
+                  <FolderKanban className="size-3.5" />
+                  <span>Core Engine</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-[6px] px-2 py-1.5 text-muted-foreground hover:bg-secondary">
+                  <FolderKanban className="size-3.5" />
+                  <span>Growth</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Profile */}
+            <div className="mt-auto pt-4 border-t border-border flex items-center gap-2">
+              <Avatar seed="Alex Morgan" size={24} />
+              <div className="min-w-0 flex-1 text-left leading-tight">
+                <div className="truncate font-semibold text-foreground">
+                  Alex Morgan
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  Lead (Platform)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Area */}
+          <div className="flex-1 min-w-0 flex flex-col text-left">
+            {/* Team Header Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base font-semibold text-foreground">
+                  Platform
+                </span>
+                <Badge
+                  variant="secondary"
+                  className="text-[11px] font-medium border-border bg-secondary"
+                >
+                  Lead: Alex Morgan
+                </Badge>
+              </div>
+              <div className="inline-flex items-center rounded-[6px] border border-border bg-secondary/50 p-0.5 text-xs">
+                <span className="rounded-[4px] bg-card px-2.5 py-1 font-semibold text-foreground shadow-xs">
+                  This week
+                </span>
+                <span className="px-2.5 py-1 text-muted-foreground">
+                  History
+                </span>
+              </div>
+            </div>
+
+            {/* Week Navigator Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/20 px-4 py-2 sm:px-5 text-xs">
+              <div className="flex items-center gap-1.5 text-foreground font-medium">
+                <span
+                  className="p-0.5 rounded text-muted-foreground hover:text-foreground select-none"
+                  aria-hidden="true"
+                >
+                  <ChevronLeft className="size-3.5" />
+                </span>
+                <span className="text-muted-foreground">
+                  Week of Oct 12 – Oct 16
+                </span>
+                <span
+                  className="p-0.5 rounded text-muted-foreground hover:text-foreground select-none"
+                  aria-hidden="true"
+                >
+                  <ChevronRight className="size-3.5" />
+                </span>
+                <span className="text-border">•</span>
+                <span className="text-muted-foreground">4 members</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#EDE9FE] px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                <span>{approvedCount} of 4 approved</span>
+              </div>
+            </div>
+
+            {/* Split Content: Table & Plan Review */}
+            <div className="flex-1 grid grid-cols-1 xl:grid-cols-12 min-w-0">
+              {/* Table Column */}
+              <div className="xl:col-span-7 min-w-0 flex flex-col justify-between">
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full min-w-[500px] text-left text-sm">
+                    <thead className="border-b border-border bg-secondary/30 text-xs font-semibold text-muted-foreground">
+                      <tr>
+                        <th scope="col" className="px-4 py-2.5">
+                          Member
+                        </th>
+                        <th scope="col" className="px-4 py-2.5">
+                          Status
+                        </th>
+                        <th scope="col" className="px-4 py-2.5">
+                          Tasks
+                        </th>
+                        <th scope="col" className="px-4 py-2.5">
+                          Shipped
+                        </th>
+                        <th scope="col" className="px-4 py-2.5">
+                          Last 6 weeks
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border text-foreground text-xs sm:text-sm">
+                      {copy.forLeads.rows.map((row) => {
+                        const isApproved =
+                          approvedMap[row.name] ??
+                          (row.statusVariant === "approved" ||
+                            row.statusVariant === "done");
+                        const isSelected = selectedMember === row.name;
+
+                        return (
+                          <tr
+                            key={row.name}
+                            onClick={() => {
+                              setSelectedMember(row.name);
+                              setFeedbackNotice(null);
+                            }}
+                            className={`cursor-pointer transition-colors duration-150 ${
+                              isSelected
+                                ? "bg-primary/5 font-medium"
+                                : "hover:bg-secondary/40"
+                            }`}
+                          >
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Avatar
+                                  seed={row.name}
+                                  size={24}
+                                  className="team-avatar"
+                                />
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-foreground">
+                                    {row.name}
+                                  </span>
+                                  {row.isLead && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="px-1.5 py-0 text-[10px] font-semibold border-border bg-secondary text-foreground"
+                                    >
+                                      Lead
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {row.statusVariant === "done" ? (
+                                <span className="inline-flex items-center rounded-[6px] border border-emerald-200 bg-[#F0FDF4] px-2 py-0.5 text-xs font-medium text-[#15803D]">
+                                  Done
+                                </span>
+                              ) : isApproved ? (
+                                <span className="inline-flex items-center gap-1 rounded-[6px] border border-indigo-200 bg-[#F5F3FF] px-2 py-0.5 text-xs font-medium text-primary">
+                                  <Check className="size-3" />
+                                  Approved
+                                </span>
+                              ) : row.statusVariant === "submitted" ? (
+                                <span className="inline-flex items-center rounded-[6px] border border-amber-200 bg-[#FFFBEB] px-2 py-0.5 text-xs font-medium text-[#92400E]">
+                                  Submitted
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded-[6px] border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                  Not started
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 tabular-nums text-xs text-foreground">
+                              {row.tasks}
+                            </td>
+                            <td className="px-4 py-3">
+                              {row.shipped ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium text-[#15803D]">
+                                  <Check className="size-3.5 text-[#15803D]" />
+                                  Shipped
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">
+                                  —
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div
+                                className="flex items-center gap-1.5"
+                                aria-label="Last 6 weeks history"
+                              >
+                                {row.history.map((h, hIdx) => (
+                                  <span
+                                    key={hIdx}
+                                    className="size-2.5 flex items-center justify-center history-mark"
+                                    title={
+                                      h === "shipped"
+                                        ? "Shipped"
+                                        : h === "missed"
+                                          ? "Not shipped"
+                                          : "No plan"
+                                    }
+                                  >
+                                    {h === "shipped" ? (
+                                      <span className="size-2.5 rounded-[2px] bg-[#15803D]" />
+                                    ) : h === "missed" ? (
+                                      <span className="size-2.5 rounded-[2px] border border-border bg-card flex items-center justify-center text-[7px] font-semibold text-muted-foreground leading-none select-none">
+                                        ×
+                                      </span>
+                                    ) : (
+                                      <span className="size-1 rounded-full bg-[#94A3B8]" />
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="border-t border-border bg-secondary/10 px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between">
+                  <span>Select any member row to inspect plan</span>
+                  <span className="font-mono text-[10px]">
+                    Active: {selectedMember}
+                  </span>
+                </div>
+              </div>
+
+              {/* Plan Review Pane */}
+              <div className="xl:col-span-5 border-t xl:border-t-0 xl:border-l border-border bg-card p-4 sm:p-5 flex flex-col justify-between">
+                <div>
+                  {/* Plan Review Header */}
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar seed={selectedMember} size={28} />
+                      <div>
+                        <h4 className="text-sm font-semibold text-foreground leading-tight">
+                          {selectedMember}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground">
+                          {plan?.role ?? "Engineer"}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      {selectedMember === "Alex Morgan" ? (
+                        <span className="inline-flex items-center rounded-[6px] border border-emerald-200 bg-[#F0FDF4] px-2 py-0.5 text-xs font-medium text-[#15803D]">
+                          Done
+                        </span>
+                      ) : isSelectedApproved ? (
+                        <span className="inline-flex items-center gap-1 rounded-[6px] border border-indigo-200 bg-[#F5F3FF] px-2 py-0.5 text-xs font-medium text-primary">
+                          <Check className="size-3" />
+                          Approved
+                        </span>
+                      ) : selectedMember === "David Kim" ? (
+                        <span className="inline-flex items-center rounded-[6px] border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                          Not started
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-[6px] border border-amber-200 bg-[#FFFBEB] px-2 py-0.5 text-xs font-medium text-[#92400E]">
+                          Submitted
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Plan Content */}
+                  {selectedMember === "David Kim" ? (
+                    <div className="py-8 text-center text-xs text-muted-foreground space-y-1">
+                      <p className="font-medium text-foreground">
+                        No plan submitted
+                      </p>
+                      <p>David is still drafting his weekly commitment.</p>
+                    </div>
+                  ) : plan ? (
+                    <div className="mt-3.5 space-y-3 text-xs">
+                      {/* Main Task */}
+                      <div>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Main Task (Ship by Friday)
+                        </span>
+                        <p className="mt-1 font-semibold text-foreground text-sm leading-snug">
+                          {plan.mainTask}
+                        </p>
+                      </div>
+
+                      {/* Why it matters */}
+                      <div>
+                        <span className="text-[11px] font-semibold text-muted-foreground">
+                          Why it matters
+                        </span>
+                        <p className="mt-0.5 text-muted-foreground leading-relaxed">
+                          {plan.why}
+                        </p>
+                      </div>
+
+                      {/* Sub-goals */}
+                      {plan.subGoals.length > 0 && (
+                        <div>
+                          <span className="text-[11px] font-semibold text-muted-foreground">
+                            Sub-goals
+                          </span>
+                          <ul className="mt-1 space-y-1">
+                            {plan.subGoals.map((sg, i) => (
+                              <li
+                                key={i}
+                                className="flex items-center gap-2 text-foreground"
+                              >
+                                <div className="size-3.5 rounded-[3px] border border-border bg-secondary/50 flex items-center justify-center">
+                                  {i === 0 && (
+                                    <Check className="size-2.5 text-primary" />
+                                  )}
+                                </div>
+                                <span>{sg}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* GTM Goal */}
+                      {plan.gtmGoal && (
+                        <div>
+                          <span className="text-[11px] font-semibold text-muted-foreground">
+                            Go-to-market goal
+                          </span>
+                          <p className="mt-0.5 text-foreground">
+                            {plan.gtmGoal}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* AI Review Summary callout */}
+                      <div className="rounded-[6px] border border-primary/20 bg-[#F5F3FF] p-2.5 flex items-start gap-2">
+                        <Sparkles className="size-3.5 text-primary shrink-0 mt-0.5" />
+                        <p className="text-[11px] text-primary font-medium leading-snug">
+                          {plan.aiSummary}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Actions bar for Lead */}
+                {selectedMember !== "David Kim" &&
+                  selectedMember !== "Alex Morgan" && (
+                    <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSendBack}
+                        className="rounded-[6px] border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors"
+                      >
+                        Send back
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleApprove}
+                        className={`inline-flex items-center gap-1.5 rounded-[6px] px-3.5 py-1.5 text-xs font-medium text-white transition-colors ${
+                          isSelectedApproved
+                            ? "bg-[#15803D] hover:bg-[#166534]"
+                            : "bg-primary hover:bg-[#4338CA]"
+                        }`}
+                      >
+                        <Check className="size-3.5" />
+                        {isSelectedApproved ? "Approved" : "Approve plan"}
+                      </button>
+                    </div>
+                  )}
+
+                {feedbackNotice && (
+                  <div className="mt-2 text-[11px] font-medium text-[#92400E] bg-[#FFFBEB] border border-amber-200 rounded-[6px] p-2">
+                    {feedbackNotice}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Caption + Clearly Readable Legend */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+        <span className="text-muted-foreground font-medium">
+          {copy.forLeads.caption}
+        </span>
+        <div className="flex items-center gap-4 text-xs">
+          <span className="flex items-center gap-1.5">
+            <span
+              className="size-3 rounded-[2px] bg-[#15803D]"
+              aria-hidden="true"
+            />
+            <span className="font-medium text-foreground">
+              {copy.forLeads.legend.shipped}
+            </span>
+          </span>
+          <span aria-hidden="true" className="text-border">
+            •
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span
+              className="size-3 rounded-[2px] border border-border bg-card flex items-center justify-center text-[8px] font-semibold text-muted-foreground leading-none"
+              aria-hidden="true"
+            >
+              ×
+            </span>
+            <span className="font-medium text-foreground">
+              {copy.forLeads.legend.notShipped}
+            </span>
+          </span>
+          <span aria-hidden="true" className="text-border">
+            •
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span
+              className="size-1.5 rounded-full bg-[#94A3B8]"
+              aria-hidden="true"
+            />
+            <span className="font-medium text-foreground">
+              {copy.forLeads.legend.noPlan}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* Benefits 3-Card Grid */}
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+        <div className="rounded-[10px] border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+            <Users className="size-4" />
+            <span>Real-time status</span>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+            {copy.forLeads.benefits[0]}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+            <MessageSquare className="size-4" />
+            <span>One-click decisions</span>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+            {copy.forLeads.benefits[1]}
+          </p>
+        </div>
+        <div className="rounded-[10px] border border-border bg-card p-4">
+          <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+            <Check className="size-4" />
+            <span>Shipped accountability</span>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+            {copy.forLeads.benefits[2]}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
