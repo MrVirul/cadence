@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -57,24 +57,29 @@ export function HomePage() {
 
   // IntersectionObserver for illustration gentle float (active only while in view)
   useEffect(() => {
-    const el = document.getElementById("closing-illustration-img");
-    if (!el || typeof IntersectionObserver === "undefined") {
+    if (typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const elements = document.querySelectorAll(".illustration-float");
+    if (!elements.length) {
       return;
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) {
-          el.classList.add("float-in-view");
-        } else {
-          el.classList.remove("float-in-view");
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("float-in-view");
+          } else {
+            entry.target.classList.remove("float-in-view");
+          }
         }
       },
       { threshold: 0.05 }
     );
 
-    observer.observe(el);
+    elements.forEach((el) => observer.observe(el));
     return () => {
       observer.disconnect();
     };
@@ -181,14 +186,20 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Cropped ProductFrame with flat offset panel */}
-            <div className="lg:col-span-6 min-w-0 relative">
-              {/* Flat offset panel for depth */}
-              <div
-                className="absolute inset-0 translate-x-3 translate-y-3 rounded-[12px] bg-[#F5F3FF] border border-[#E6E3F1]"
-                aria-hidden="true"
-              />
-              <ProductFrame />
+            {/* Right Column: Hero Schedule Illustration */}
+            <div className="lg:col-span-6 min-w-0 flex items-center justify-center lg:justify-end">
+              <div className="relative w-full max-w-[480px] flex items-center justify-center">
+                <img
+                  id="hero-illustration-img"
+                  src="/schedule.svg"
+                  width={500}
+                  height={500}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                  className="illustration-float w-full h-auto object-contain hero-fade-up hero-stagger-2"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -718,7 +729,7 @@ export function HomePage() {
                     alt=""
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-auto object-contain"
+                    className="illustration-float w-full h-auto object-contain"
                   />
                 </div>
               </div>
@@ -781,232 +792,6 @@ export function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/**
- * ProductFrame Story Component:
- * - Plays ONCE:
- *   1. Frame appears;
- *   2. AI finding slides down at ~0.9s;
- *   3. At ~2.4s the Apply button shows pressed state;
- *   4. Main task text cross-fades from "Implement checkout" to
- *      "Checkout handles expired cards, confirmed on staging" with soft purple highlight that fades in 1.2s;
- *   5. Finding collapses into a small "Applied" chip.
- * - Static version (reduced motion or no JS) shows BEFORE state with finding visible.
- * - Frame stays aria-hidden="true" with a visually hidden text description.
- */
-function ProductFrame() {
-  const p = copy.hero.productFrame;
-
-  // Stages:
-  // 0: Initial (Before state: "Implement checkout", finding sliding in)
-  // 1: Finding settled in view
-  // 2: Apply button pressed
-  // 3: Applied state: text updated, soft purple highlight fading, finding collapsed to chip
-  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
-  const [hasPlayed, setHasPlayed] = useState(false);
-
-  useEffect(() => {
-    // If reduced motion is preferred, keep static before-state
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
-    }
-
-    if (hasPlayed) {
-      return;
-    }
-
-    // Timeline:
-    // t=900ms: finding settled
-    const t1 = setTimeout(() => {
-      setStage(1);
-    }, 900);
-
-    // t=2400ms: apply button pressed
-    const t2 = setTimeout(() => {
-      setStage(2);
-    }, 2400);
-
-    // t=2600ms: task cross-fades, highlight activates, finding collapses
-    const t3 = setTimeout(() => {
-      setStage(3);
-      setHasPlayed(true);
-    }, 2600);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
-  }, [hasPlayed]);
-
-  const isApplied = stage === 3;
-  const isButtonPressed = stage === 2;
-
-  return (
-    <div
-      aria-hidden="true"
-      className="relative z-10 rounded-[12px] border border-border bg-card p-5 sm:p-6 shadow-[0_16px_40px_rgba(11,11,20,0.06)] select-none text-left max-h-[520px] overflow-hidden"
-    >
-      <span className="sr-only">{p.srDescription}</span>
-
-      {/* Week Header */}
-      <div className="flex items-center justify-between border-b border-border pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {p.team}
-            </span>
-            <span className="text-xs text-muted-foreground">•</span>
-            <span className="inline-flex items-center rounded-[6px] border border-amber-200 bg-[#FFFBEB] px-2 py-0.5 text-xs font-medium text-[#92400E]">
-              {p.status}
-            </span>
-          </div>
-          <p className="mt-1 text-sm font-semibold text-foreground">
-            {p.weekTitle}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="rounded-[6px] border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground">
-            Save
-          </div>
-          <div className="rounded-[6px] bg-primary px-3 py-1.5 text-xs font-medium text-white">
-            Submit
-          </div>
-        </div>
-      </div>
-
-      {/* Main Task Editor */}
-      <div className="mt-4 space-y-3.5">
-        <div>
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-foreground">
-              {p.mainLabel}
-            </label>
-            {/* "Applied" Chip when story completes */}
-            {isApplied && (
-              <span className="inline-flex items-center gap-1 rounded-[6px] bg-[#EDE9FE] px-2 py-0.5 text-[11px] font-semibold text-primary transition-opacity duration-500">
-                <Check className="size-3" />
-                {p.aiFinding.applied}
-              </span>
-            )}
-          </div>
-
-          {/* Main task box with cross-fade and soft purple highlight */}
-          <div
-            className={`mt-1.5 rounded-[6px] border border-border px-3 py-2 text-sm text-foreground transition-colors duration-1200 ${
-              isApplied ? "bg-[#EDE9FE]/40" : "bg-card"
-            }`}
-          >
-            <span className="inline-block transition-opacity duration-500">
-              {isApplied ? p.aiFinding.rewrite : p.mainTask}
-            </span>
-          </div>
-        </div>
-
-        {/* AI Finding Card: slides down at 0.9s, collapses at 2.6s */}
-        {!isApplied && (
-          <div
-            className={`rounded-[8px] border border-amber-200 bg-[#FFFBEB] p-3.5 text-sm transition-all duration-500 ${
-              stage >= 1
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 -translate-y-2"
-            }`}
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <AlertTriangle className="size-4 shrink-0 text-[#92400E]" />
-              <span className="inline-flex items-center rounded-[6px] border border-amber-200 bg-[#FEF3C7] px-2 py-0.5 text-xs font-semibold text-[#92400E]">
-                {p.aiFinding.category}
-              </span>
-              <span className="inline-flex items-center rounded-[6px] border border-amber-200 bg-card px-2 py-0.5 text-[11px] font-semibold uppercase text-[#92400E]">
-                {p.aiFinding.severity}
-              </span>
-            </div>
-
-            <p className="mt-2 text-xs leading-relaxed text-foreground">
-              {p.aiFinding.problem}
-            </p>
-
-            {/* Suggested rewrite in white box */}
-            <div className="mt-2.5 rounded-[6px] border border-border bg-card p-2.5">
-              <p className="text-[11px] font-medium text-muted-foreground">
-                {p.aiFinding.rewriteLabel}
-              </p>
-              <p className="mt-1 text-xs font-semibold text-foreground">
-                {p.aiFinding.rewrite}
-              </p>
-            </div>
-
-            <div className="mt-3 flex items-center gap-2">
-              <div
-                className={`inline-flex items-center gap-1.5 rounded-[6px] bg-primary px-2.5 py-1 text-xs font-medium text-white transition-transform duration-150 ${
-                  isButtonPressed
-                    ? "scale-95 bg-[#3730A3]"
-                    : "scale-100 hover:bg-[#4338CA]"
-                }`}
-              >
-                <Check className="size-3.5" />
-                {p.aiFinding.apply}
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-[6px] border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground">
-                <X className="size-3.5" />
-                {p.aiFinding.dismiss}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Why it matters */}
-        <div>
-          <label className="text-xs font-semibold text-foreground">
-            {p.whyLabel}
-          </label>
-          <div className="mt-1.5 rounded-[6px] border border-border bg-card px-3 py-2 text-xs text-foreground">
-            {p.mainWhy}
-          </div>
-        </div>
-      </div>
-
-      {/* Sub-goals */}
-      <div className="mt-4 border-t border-border pt-3.5">
-        <span className="text-xs font-semibold text-foreground">
-          {p.subGoalsLabel}
-        </span>
-        <div className="mt-2 space-y-1.5">
-          <div className="flex items-center gap-2.5 rounded-[6px] border border-border bg-card px-2.5 py-1.5 text-xs text-foreground">
-            <div className="size-3.5 rounded-[3px] border border-border bg-card" />
-            <span>{p.subGoal1}</span>
-          </div>
-          <div className="flex items-center gap-2.5 rounded-[6px] border border-border bg-card px-2.5 py-1.5 text-xs text-foreground">
-            <div className="size-3.5 rounded-[3px] border border-border bg-card" />
-            <span>{p.subGoal2}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* GTM goals */}
-      <div className="mt-3.5 border-t border-border pt-3.5">
-        <span className="text-xs font-semibold text-foreground">
-          {p.gtmGoalsLabel}
-        </span>
-        <div className="mt-2">
-          <div className="flex items-center gap-2.5 rounded-[6px] border border-border bg-card px-2.5 py-1.5 text-xs text-foreground">
-            <div className="size-3.5 rounded-[3px] border border-border bg-card" />
-            <span>{p.gtmGoal1}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Soft white fade at bottom (functional crop indicator) */}
-      <div
-        className="pointer-events-none absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-white via-white/80 to-transparent z-20"
-        aria-hidden="true"
-      />
     </div>
   );
 }
