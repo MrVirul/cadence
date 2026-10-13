@@ -196,6 +196,8 @@ function SidebarContent({
   const { user, memberships } = useUser();
 
   const currentMembership = memberships.find((m) => m.org.id === orgId);
+  const activeOrgName =
+    orgName || currentMembership?.org.name || "Organization";
   const myRole = currentMembership?.role ?? "member";
   const isOrgAdminOrOwner = myRole === "owner" || myRole === "admin";
 
@@ -314,7 +316,7 @@ function SidebarContent({
             >
               <span className="flex min-w-0 items-center gap-2">
                 <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                <span className="truncate">{orgName}</span>
+                <span className="truncate">{activeOrgName}</span>
               </span>
               <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
             </DropdownMenuTrigger>
@@ -349,7 +351,7 @@ function SidebarContent({
             <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5">
               <Building2 className="size-4 shrink-0 text-muted-foreground" />
               <span className="truncate text-sm font-semibold text-foreground">
-                {orgName}
+                {activeOrgName}
               </span>
             </div>
             <Button

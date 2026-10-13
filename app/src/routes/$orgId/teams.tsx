@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -39,13 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LabeledSelect } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -60,13 +54,15 @@ import {
   getApiErrorMessage,
   getApiStatus,
 } from "@/lib/api-errors";
+import { formatMemberLabel, sortMembersByName } from "@/lib/utils";
 import { currentWeekStartUtc } from "@/lib/week";
 
 export const Route = createFileRoute("/$orgId/teams")({
+  head: () => ({
+    meta: [{ title: "Teams — Cadence" }],
+  }),
   component: TeamsAdminPage,
 });
-
-const NO_LEAD_VALUE = "__none__";
 
 function TeamsAdminPage() {
   const { orgId } = Route.useParams();
@@ -92,7 +88,7 @@ function TeamsAdminWorkspace({ orgId }: { orgId: string }) {
   // Create team dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
-  const [newTeamLeadId, setNewTeamLeadId] = useState<string>(NO_LEAD_VALUE);
+  const [newTeamLeadId, setNewTeamLeadId] = useState<string>("");
   const [createError, setCreateError] = useState<string | null>(null);
 
   // Manage team dialog state
@@ -107,6 +103,18 @@ function TeamsAdminWorkspace({ orgId }: { orgId: string }) {
 
   const memberById = new Map(orgMembers.map((m) => [m.membership_id, m]));
 
+  const newTeamLeadOptions = useMemo(() => {
+    const items = membersQuery.data?.items ?? [];
+    const sorted = sortMembersByName(items);
+    return [
+      { value: "", label: "No lead yet" },
+      ...sorted.map((m) => ({
+        value: m.membership_id,
+        label: formatMemberLabel(m.user),
+      })),
+    ];
+  }, [membersQuery.data?.items]);
+
   const invalidateTeams = async (teamId?: string) => {
     await queryClient.invalidateQueries({
       queryKey: getListTeamsQueryKey(orgId),
@@ -120,7 +128,7 @@ function TeamsAdminWorkspace({ orgId }: { orgId: string }) {
 
   const handleOpenCreate = () => {
     setNewTeamName("");
-    setNewTeamLeadId(NO_LEAD_VALUE);
+    setNewTeamLeadId("");
     setCreateError(null);
     setCreateOpen(true);
   };
@@ -143,8 +151,7 @@ function TeamsAdminWorkspace({ orgId }: { orgId: string }) {
         orgId,
         data: {
           name: trimmed,
-          lead_membership_id:
-            newTeamLeadId !== NO_LEAD_VALUE ? newTeamLeadId : null,
+          lead_membership_id: newTeamLeadId ? newTeamLeadId : null,
         },
       });
       await invalidateTeams();
@@ -351,28 +358,17 @@ function TeamsAdminWorkspace({ orgId }: { orgId: string }) {
 
             <div className="space-y-1.5">
               <Label htmlFor="new-team-lead">Team lead (optional)</Label>
-              <Select
+              <LabeledSelect
+                id="new-team-lead"
                 value={newTeamLeadId}
                 onValueChange={(val) => {
-                  if (val) {
-                    setNewTeamLeadId(val);
-                  }
+                  setNewTeamLeadId(val);
                 }}
-              >
-                <SelectTrigger id="new-team-lead" className="w-full">
-                  <SelectValue placeholder="No lead yet" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_LEAD_VALUE}>No lead yet</SelectItem>
-                  {orgMembers.map((m) => (
-                    <SelectItem key={m.membership_id} value={m.membership_id}>
-                      {m.user.name
-                        ? `${m.user.name} (${m.user.email})`
-                        : m.user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={newTeamLeadOptions}
+                placeholder="No lead yet"
+                clearable
+                className="w-full"
+              />
               <p className="text-xs text-muted-foreground">
                 If you select a lead now, they will be added as a team member
                 automatically.
@@ -517,6 +513,14 @@ function ManageTeamForm({
     team.lead_membership_id ?? ""
   );
   const [leadError, setLeadError] = useState<string | null>(null);
+
+  const teamLeadOptions = useMemo(() => {
+    const sorted = sortMembersByName(team.members);
+    return sorted.map((m) => ({
+      value: m.membership_id,
+      label: formatMemberLabel(m.user),
+    }));
+  }, [team.members]);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -786,28 +790,17 @@ function ManageTeamForm({
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <Select
+            <LabeledSelect
+              id="team-lead-select"
               value={selectedLeadId}
               onValueChange={(val) => {
-                if (val) {
-                  setSelectedLeadId(val);
-                }
+                setSelectedLeadId(val);
                 setLeadError(null);
               }}
-            >
-              <SelectTrigger id="team-lead-select" className="flex-1">
-                <SelectValue placeholder="Choose a team member as lead" />
-              </SelectTrigger>
-              <SelectContent>
-                {team.members.map((m) => (
-                  <SelectItem key={m.membership_id} value={m.membership_id}>
-                    {m.user.name
-                      ? `${m.user.name} (${m.user.email})`
-                      : m.user.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={teamLeadOptions}
+              placeholder="Choose a team member as lead"
+              className="flex-1"
+            />
             <Button
               type="button"
               size="sm"

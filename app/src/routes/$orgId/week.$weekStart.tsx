@@ -66,10 +66,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+import { LabeledSelect } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { DraftFromNotesDialog } from "@/components/week/DraftFromNotesDialog";
@@ -93,6 +90,9 @@ import {
 } from "@/lib/week";
 
 export const Route = createFileRoute("/$orgId/week/$weekStart")({
+  head: ({ params }) => ({
+    meta: [{ title: `My week (${params.weekStart}) — Cadence` }],
+  }),
   component: MyWeekRoutePage,
 });
 
@@ -1126,18 +1126,17 @@ function WeekWorkspace({
                   <Label htmlFor="empty-team-select" className="text-xs">
                     Team
                   </Label>
-                  <NativeSelect
+                  <LabeledSelect
                     id="empty-team-select"
                     value={selectedTeamId}
-                    onChange={(e) => setUserSelectedTeamId(e.target.value)}
+                    onValueChange={(val) => setUserSelectedTeamId(val)}
+                    options={memberTeams.map((team) => ({
+                      value: team.id,
+                      label: team.name,
+                    }))}
+                    placeholder="Select team"
                     className="w-full"
-                  >
-                    {memberTeams.map((team) => (
-                      <NativeSelectOption key={team.id} value={team.id}>
-                        {team.name}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
+                  />
                 </div>
               )}
 
@@ -1213,18 +1212,18 @@ function WeekWorkspace({
                     >
                       Team:
                     </Label>
-                    <NativeSelect
+                    <LabeledSelect
                       id="draft-team-select"
                       size="sm"
                       value={selectedTeamId}
-                      onChange={(e) => setUserSelectedTeamId(e.target.value)}
-                    >
-                      {memberTeams.map((t) => (
-                        <NativeSelectOption key={t.id} value={t.id}>
-                          {t.name}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
+                      onValueChange={(val) => setUserSelectedTeamId(val)}
+                      options={memberTeams.map((t) => ({
+                        value: t.id,
+                        label: t.name,
+                      }))}
+                      placeholder="Select team"
+                      className="w-48"
+                    />
                   </div>
                 ) : memberTeams[0] ? (
                   <span className="text-xs text-muted-foreground">

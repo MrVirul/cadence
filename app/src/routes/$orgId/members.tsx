@@ -48,13 +48,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LabeledSelect } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -72,6 +66,9 @@ import {
 } from "@/lib/api-errors";
 
 export const Route = createFileRoute("/$orgId/members")({
+  head: () => ({
+    meta: [{ title: "Members & Invites — Cadence" }],
+  }),
   component: MembersAndInvitesPage,
 });
 
@@ -459,37 +456,26 @@ function MembersWorkspace({ orgId }: { orgId: string }) {
                           <TableCell className="px-4 py-3">
                             {canEditRole ? (
                               <div className="w-32">
-                                <Select
+                                <LabeledSelect
+                                  size="sm"
+                                  aria-label={`Role for ${member.user.email}`}
                                   value={member.role}
                                   disabled={isRowUpdating}
                                   onValueChange={(val) => {
-                                    if (val) {
-                                      void handleRoleChange(
-                                        member,
-                                        val as MemberRoleUpdateRequestRole
-                                      );
-                                    }
+                                    void handleRoleChange(
+                                      member,
+                                      val as MemberRoleUpdateRequestRole
+                                    );
                                   }}
-                                >
-                                  <SelectTrigger
-                                    size="sm"
-                                    aria-label={`Role for ${member.user.email}`}
-                                    className="w-full capitalize"
-                                  >
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {isOwner && (
-                                      <SelectItem value="owner">
-                                        Owner
-                                      </SelectItem>
-                                    )}
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="member">
-                                      Member
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                  options={[
+                                    ...(isOwner
+                                      ? [{ value: "owner", label: "Owner" }]
+                                      : []),
+                                    { value: "admin", label: "Admin" },
+                                    { value: "member", label: "Member" },
+                                  ]}
+                                  className="w-full"
+                                />
                               </div>
                             ) : (
                               <Badge
@@ -764,22 +750,18 @@ function MembersWorkspace({ orgId }: { orgId: string }) {
             <form onSubmit={handleCreateInvite} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="invite-role-select">Role</Label>
-                <Select
+                <LabeledSelect
+                  id="invite-role-select"
                   value={inviteRole}
                   onValueChange={(val) => {
-                    if (val) {
-                      setInviteRole(val as InviteCreateRequestRole);
-                    }
+                    setInviteRole(val as InviteCreateRequestRole);
                   }}
-                >
-                  <SelectTrigger id="invite-role-select" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { value: "member", label: "Member" },
+                    { value: "admin", label: "Admin" },
+                  ]}
+                  className="w-full"
+                />
               </div>
 
               <div className="space-y-1.5">
