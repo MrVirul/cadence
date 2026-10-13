@@ -18,6 +18,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorMessage } from "@/lib/api-errors";
 
 export const Route = createFileRoute("/$orgId/settings")({
+  head: () => ({
+    meta: [{ title: "Settings — Cadence" }],
+  }),
   component: OrgSettingsPage,
 });
 

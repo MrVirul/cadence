@@ -27,6 +27,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/invite/$token")({
+  head: () => ({
+    meta: [{ title: "Join team — Cadence" }],
+  }),
   component: InvitePreviewPage,
 });
 

@@ -12,11 +12,15 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // Default title — individual routes override this via their own head().
       { title: "Cadence" },
       {
         name: "description",
-        content: "Cadence — weekly engineering planning.",
+        content:
+          "Cadence — weekly engineering planning. Commit to one thing, ship it by Friday.",
       },
+      // The customer app is behind auth. Block search indexing.
+      { name: "robots", content: "noindex, nofollow" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

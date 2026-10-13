@@ -39,6 +39,9 @@ const onboardingSchema = z.object({
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 export const Route = createFileRoute("/onboarding")({
+  head: () => ({
+    meta: [{ title: "Set up your team — Cadence" }],
+  }),
   component: OnboardingRoute,
 });
 

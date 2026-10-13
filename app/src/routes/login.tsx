@@ -34,6 +34,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export const Route = createFileRoute("/login")({
+  head: () => ({
+    meta: [{ title: "Sign in — Cadence" }],
+  }),
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
     redirect:
       typeof search["redirect"] === "string" ? search["redirect"] : undefined,

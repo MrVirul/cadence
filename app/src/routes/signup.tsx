@@ -54,6 +54,9 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export const Route = createFileRoute("/signup")({
+  head: () => ({
+    meta: [{ title: "Create account — Cadence" }],
+  }),
   validateSearch: (search: Record<string, unknown>): { invite?: string } => ({
     invite:
       typeof search["invite"] === "string" && search["invite"].trim().length > 0

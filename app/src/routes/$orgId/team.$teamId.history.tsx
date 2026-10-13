@@ -23,6 +23,9 @@ import {
 import { currentWeekStartUtc, getWeekRangeLabel } from "@/lib/week";
 
 export const Route = createFileRoute("/$orgId/team/$teamId/history")({
+  head: () => ({
+    meta: [{ title: "Team history — Cadence" }],
+  }),
   component: TeamHistoryPage,
 });
 

@@ -66,6 +66,9 @@ import {
 } from "@/lib/week";
 
 export const Route = createFileRoute("/$orgId/team/$teamId/week/$weekStart")({
+  head: ({ params }) => ({
+    meta: [{ title: `Team week (${params.weekStart}) — Cadence` }],
+  }),
   component: TeamWeekPage,
 });
 
