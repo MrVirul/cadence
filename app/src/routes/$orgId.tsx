@@ -487,54 +487,34 @@ function SidebarContent({
         )}
       </nav>
 
-      {/* User profile / Account menu */}
+      {/* User profile & Logout */}
       <div className="border-t p-3">
         {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  className="h-auto w-full justify-start gap-2.5 px-2 py-2 text-left hover:bg-muted"
-                  aria-label="Account menu"
-                />
-              }
-            >
-              <Avatar seed={user.id} name={fullName} size={32} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {fullName}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {user.email}
-                </p>
-              </div>
-              <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" side="top">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none text-foreground">
-                    {fullName}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={logoutMutation.isPending}
-                onClick={() => logoutMutation.mutate()}
-                className="cursor-pointer text-destructive focus:text-destructive"
+          <div className="flex items-center gap-2.5 px-2 py-1.5">
+            <Avatar seed={user.id} name={fullName} size={32} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">
+                {fullName}
+              </p>
+              <p
+                className="truncate text-xs text-muted-foreground"
+                title={user.email}
               >
-                <LogOut className="mr-2 size-4" />
-                <span>
-                  {logoutMutation.isPending ? "Signing out..." : "Log out"}
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {user.email}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              disabled={logoutMutation.isPending}
+              onClick={() => logoutMutation.mutate()}
+              title={logoutMutation.isPending ? "Signing out..." : "Log out"}
+              aria-label="Log out"
+            >
+              <LogOut className="size-4" />
+            </Button>
+          </div>
         )}
       </div>
     </div>
