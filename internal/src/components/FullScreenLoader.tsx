@@ -1,29 +1,41 @@
+import { InternalBanner } from "@/components/InternalBanner";
+import { Logo } from "@/components/Logo";
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function FullScreenLoader() {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <svg
-        viewBox="0 0 64 64"
-        className="size-16 text-foreground"
-        role="img"
-        aria-label="Loading"
-      >
-        {/* dome lifts off above the pad, then loops */}
-        <path
-          className="launch-loader__dome"
-          d="M12 35 A20 20 0 0 1 52 35 Z"
-          fill="currentColor"
-        />
-        {/* launchpad bar pulses like exhaust */}
-        <rect
-          className="launch-loader__pad"
-          x="12"
-          y="43"
-          width="40"
-          height="7"
-          rx="3.5"
-          fill="#FF4F1F"
-        />
-      </svg>
+    <div
+      className="flex h-screen flex-col overflow-hidden bg-muted/30"
+      role="status"
+      aria-label="Loading staff console"
+    >
+      <InternalBanner />
+      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+        <div className="flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
+          <Logo />
+          <Skeleton className="size-8 rounded-md" />
+        </div>
+        <aside className="hidden w-64 shrink-0 flex-col border-r bg-background md:flex">
+          <div className="flex h-16 items-center border-b px-5">
+            <Logo />
+          </div>
+          <div className="space-y-2 p-4">
+            <Skeleton className="h-9 w-full rounded-md" />
+            <Skeleton className="h-9 w-full rounded-md" />
+            <Skeleton className="h-9 w-full rounded-md" />
+            <Skeleton className="h-9 w-full rounded-md" />
+          </div>
+        </aside>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-7 w-48" />
+              <Skeleton className="h-4 w-72" />
+            </div>
+            <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

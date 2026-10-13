@@ -7,6 +7,7 @@ type User = InternalUserResponse;
 interface UserContextType {
   user: User | null;
   isLoading: boolean;
+  isStaffOnly: boolean;
   isAuthenticated: boolean;
   isUnauthenticated: boolean;
   error: unknown;
@@ -19,6 +20,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const {
     user,
     isLoading,
+    isStaffOnly,
     isAuthenticated,
     isUnauthenticated,
     error,
@@ -30,6 +32,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       value={{
         user: user || null,
         isLoading,
+        isStaffOnly,
         isAuthenticated,
         isUnauthenticated,
         error,

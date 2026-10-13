@@ -1,4 +1,6 @@
-// Public (meta) routes that do not require authentication.
-// The AuthGuard treats anything NOT listed here as a protected route.
-// Add new auth pages (e.g. "/reset-password") here as they are created.
-export const PUBLIC_ROUTES = ["/login"];
+// Public (meta) routes that do not require an active staff session.
+export const PUBLIC_ROUTES = ["/login", "/staff-only"];
+
+export function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+}

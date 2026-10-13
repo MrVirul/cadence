@@ -1,11 +1,13 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useGetCurrentInternalUser } from "@/api/endpoints/users/users";
-import { PUBLIC_ROUTES } from "@/lib/routes";
+import { getApiErrorCode, getApiStatus } from "@/lib/api-error";
+import { isPublicRoute } from "@/lib/routes";
 
 // Resolves the current session from GET /users/self (authenticated via the
-// httponly internal_access_token cookie) and redirects to /login when a
-// protected route is hit without a valid session.
+// httponly internal_access_token cookie).
+// - 401 (invalid_token / credentials_required / unauthorized) -> redirect to /login
+// - 403 (staff_only) or user.is_admin === false -> show StaffOnlyView in AuthGuard
 export function useAuth() {
   const navigate = useNavigate();
   const pathname = useLocation({ select: (l) => l.pathname });
@@ -24,37 +26,40 @@ export function useAuth() {
     },
   });
 
+  const errorCode = getApiErrorCode(error);
+  const errorStatus = getApiStatus(error);
+  const isStaffOnly =
+    !queryLoading &&
+    (errorCode === "staff_only" ||
+      errorStatus === 403 ||
+      (user !== undefined && !user.is_admin));
+
   useEffect(() => {
     if (!queryLoading) {
-      if (error) {
-        // Only redirect to login from protected routes; public routes such
-        // as /login must render without a session.
-        const isMetaRoute = PUBLIC_ROUTES.some((route) =>
-          pathname.startsWith(route)
-        );
-
-        if (!isMetaRoute) {
+      if (error && !isStaffOnly) {
+        if (!isPublicRoute(pathname)) {
           navigate({ to: "/login", replace: true });
           return undefined;
         }
       }
-      // Small buffer to prevent UI flash while the auth check settles.
       const timer = setTimeout(() => {
         setIsInitialMount(false);
-      }, 100);
+      }, 60);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [queryLoading, error, navigate, pathname]);
+  }, [queryLoading, error, isStaffOnly, navigate, pathname]);
 
   const isLoading = queryLoading || isInitialMount;
-  const isAuthenticated = !isLoading && !error && !!user;
-  const isUnauthenticated = !isLoading && (!!error || !user);
+  const isAuthenticated =
+    !isLoading && !error && Boolean(user) && Boolean(user?.is_admin);
+  const isUnauthenticated = !isLoading && (Boolean(error) || !user);
 
   return {
     user,
     isLoading,
     error,
+    isStaffOnly,
     isAuthenticated,
     isUnauthenticated,
     refetch,
