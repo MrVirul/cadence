@@ -238,6 +238,7 @@ function WeekWorkspace({
   const [isEditingNew, setIsEditingNew] = useState(false);
   const [userSelectedTeamId, setUserSelectedTeamId] = useState<string>("");
   const [rows, setRows] = useState<FormTaskRow[]>([]);
+  const [flashingFieldKey, setFlashingFieldKey] = useState<string | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState<string>("");
   const initializedPlanIdRef = useRef<string | null>(null);
 
@@ -950,6 +951,9 @@ function WeekWorkspace({
     }
 
     if (finding.action === "rewrite_title" && finding.task_ref) {
+      const fieldKey = `${finding.task_ref}-title`;
+      setFlashingFieldKey(fieldKey);
+      window.setTimeout(() => setFlashingFieldKey(null), 1200);
       setRows((prev) =>
         prev.map((r) =>
           r.clientKey === finding.task_ref
@@ -963,6 +967,9 @@ function WeekWorkspace({
         )
       );
     } else if (finding.action === "rewrite_why" && finding.task_ref) {
+      const fieldKey = `${finding.task_ref}-why`;
+      setFlashingFieldKey(fieldKey);
+      window.setTimeout(() => setFlashingFieldKey(null), 1200);
       setRows((prev) =>
         prev.map((r) =>
           r.clientKey === finding.task_ref
@@ -977,10 +984,13 @@ function WeekWorkspace({
       );
     } else if (finding.action === "add_task") {
       const targetKind = finding.suggested_kind ?? "gtm";
+      const newKey = allocClientKey();
+      setFlashingFieldKey(`${newKey}-title`);
+      window.setTimeout(() => setFlashingFieldKey(null), 1200);
       setRows((prev) => [
         ...prev,
         {
-          clientKey: allocClientKey(),
+          clientKey: newKey,
           serverId: null,
           kind: targetKind,
           title: finding.suggested_rewrite.slice(0, TITLE_MAX),
@@ -1110,9 +1120,15 @@ function WeekWorkspace({
             </div>
           ) : (
             <div className="rounded-xl border bg-background p-8 text-center shadow-sm">
-              <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <CalendarDays className="size-5" />
-              </div>
+              <img
+                src="/schedule.svg"
+                alt=""
+                width={220}
+                height={165}
+                className="mx-auto mb-4 w-[220px] h-auto select-none"
+                loading="lazy"
+                decoding="async"
+              />
               <h2 className="text-base font-semibold text-foreground">
                 No plan for this week yet
               </h2>
@@ -1147,7 +1163,7 @@ function WeekWorkspace({
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   disabled={aiCooldownSeconds > 0}
                   onClick={() => setDraftDialogOpen(true)}
                 >
@@ -1514,6 +1530,10 @@ function WeekWorkspace({
                       value={mainRow.title}
                       maxLength={TITLE_MAX}
                       aria-invalid={Boolean(rowErrors[mainRow.clientKey])}
+                      className={cn(
+                        flashingFieldKey === `${mainRow.clientKey}-title` &&
+                          "applied-highlight"
+                      )}
                       onChange={(e) =>
                         updateRow(mainRow.clientKey, (r) => ({
                           ...r,
@@ -1548,7 +1568,11 @@ function WeekWorkspace({
                         }))
                       }
                       placeholder="Failed renewals are our top support ticket this month"
-                      className="min-h-20 resize-y"
+                      className={cn(
+                        "min-h-20 resize-y",
+                        flashingFieldKey === `${mainRow.clientKey}-why` &&
+                          "applied-highlight"
+                      )}
                     />
                   </div>
 
@@ -1657,6 +1681,10 @@ function WeekWorkspace({
                           value={row.title}
                           maxLength={TITLE_MAX}
                           aria-invalid={Boolean(rowErrors[row.clientKey])}
+                          className={cn(
+                            flashingFieldKey === `${row.clientKey}-title` &&
+                              "applied-highlight"
+                          )}
                           onChange={(e) =>
                             updateRow(row.clientKey, (r) => ({
                               ...r,
@@ -1776,6 +1804,10 @@ function WeekWorkspace({
                           value={row.title}
                           maxLength={TITLE_MAX}
                           aria-invalid={Boolean(rowErrors[row.clientKey])}
+                          className={cn(
+                            flashingFieldKey === `${row.clientKey}-title` &&
+                              "applied-highlight"
+                          )}
                           onChange={(e) =>
                             updateRow(row.clientKey, (r) => ({
                               ...r,

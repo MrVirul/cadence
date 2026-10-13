@@ -27,6 +27,7 @@ import {
 } from "@/api/endpoints/teams/teams";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -469,23 +470,30 @@ function TeamWeekWorkspace({
                         )}
                       >
                         <TableCell className="px-4 py-3">
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="font-medium text-foreground">
-                                {row.user.name || row.user.email}
-                              </span>
-                              {isLead && (
-                                <Badge
-                                  variant="secondary"
-                                  className="px-1.5 py-0 text-[10px]"
-                                >
-                                  Lead
-                                </Badge>
-                              )}
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Avatar
+                              seed={row.user.id}
+                              name={row.user.name}
+                              size={28}
+                            />
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="font-medium text-foreground">
+                                  {row.user.name || row.user.email}
+                                </span>
+                                {isLead && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="px-1.5 py-0 text-[10px]"
+                                  >
+                                    Lead
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {row.user.email}
+                              </p>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {row.user.email}
-                            </p>
                           </div>
                         </TableCell>
 
@@ -573,16 +581,27 @@ function TeamWeekWorkspace({
         >
           <div className="space-y-5 p-4 sm:p-6">
             <SheetHeader className="p-0">
-              <SheetTitle>
-                {planQuery.data
-                  ? `${planQuery.data.author.user.name || planQuery.data.author.user.email}'s plan`
-                  : "Weekly plan"}
-              </SheetTitle>
-              <SheetDescription>
-                {planQuery.data
-                  ? `${planQuery.data.author.user.email} · ${getWeekRangeLabel(planQuery.data.week_start)}`
-                  : `Week of ${weekStart}`}
-              </SheetDescription>
+              <div className="flex items-center gap-3">
+                {planQuery.data && (
+                  <Avatar
+                    seed={planQuery.data.author.user.id}
+                    name={planQuery.data.author.user.name}
+                    size={36}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <SheetTitle>
+                    {planQuery.data
+                      ? `${planQuery.data.author.user.name || planQuery.data.author.user.email}'s plan`
+                      : "Weekly plan"}
+                  </SheetTitle>
+                  <SheetDescription>
+                    {planQuery.data
+                      ? `${planQuery.data.author.user.email} · ${getWeekRangeLabel(planQuery.data.week_start)}`
+                      : `Week of ${weekStart}`}
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
             {planQuery.isLoading ? (

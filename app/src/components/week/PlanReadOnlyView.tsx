@@ -113,9 +113,19 @@ export function PlanReadOnlyView({
             </span>
           )}
 
-          <span className="text-xs text-muted-foreground">
-            ({doneCount}/{sortedTasks.length} tasks done)
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full bg-primary transition-[width] duration-300 ease-out"
+                style={{
+                  width: `${sortedTasks.length ? (doneCount / sortedTasks.length) * 100 : 0}%`,
+                }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground">
+              ({doneCount}/{sortedTasks.length} tasks done)
+            </span>
+          </div>
 
           {statusNote}
         </div>
@@ -150,7 +160,7 @@ export function PlanReadOnlyView({
               <label
                 htmlFor={`tick-${mainTask.id}`}
                 className={cn(
-                  "block text-sm font-medium text-foreground",
+                  "block text-sm font-medium text-foreground transition-all duration-200",
                   canTick && "cursor-pointer",
                   mainTask.status === "done" &&
                     "line-through text-muted-foreground"
@@ -192,7 +202,7 @@ export function PlanReadOnlyView({
                 <label
                   htmlFor={`tick-${task.id}`}
                   className={cn(
-                    "block flex-1 text-sm text-foreground",
+                    "block flex-1 text-sm text-foreground transition-all duration-200",
                     canTick && "cursor-pointer",
                     task.status === "done" &&
                       "line-through text-muted-foreground"
@@ -229,7 +239,7 @@ export function PlanReadOnlyView({
                 <label
                   htmlFor={`tick-${task.id}`}
                   className={cn(
-                    "block flex-1 text-sm text-foreground",
+                    "block flex-1 text-sm text-foreground transition-all duration-200",
                     canTick && "cursor-pointer",
                     task.status === "done" &&
                       "line-through text-muted-foreground"

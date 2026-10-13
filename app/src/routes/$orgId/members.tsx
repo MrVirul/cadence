@@ -37,6 +37,7 @@ import type {
 } from "@/api/model";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -438,7 +439,12 @@ function MembersWorkspace({ orgId }: { orgId: string }) {
                       return (
                         <TableRow key={member.membership_id}>
                           <TableCell className="px-4 py-3 font-medium text-foreground">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2.5">
+                              <Avatar
+                                seed={member.user.id}
+                                name={member.user.name}
+                                size={28}
+                              />
                               <span>{member.user.name || "—"}</span>
                               {isMe && (
                                 <Badge

@@ -32,6 +32,7 @@ import { NoAccess } from "@/components/guards/NoAccess";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/Avatar";
 import { currentWeekStartUtc } from "@/lib/week";
 import { cn } from "@/lib/utils";
 import {
@@ -269,10 +270,6 @@ function SidebarContent({
   const fullName = user
     ? `${user.first_name} ${user.last_name}`.trim() || user.email
     : "";
-  const initials = user
-    ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase() ||
-      user.email.charAt(0).toUpperCase()
-    : "";
 
   const location = useLocation();
   const thisMonday = currentWeekStartUtc();
@@ -490,32 +487,55 @@ function SidebarContent({
         )}
       </nav>
 
-      {/* User profile and Log out */}
+      {/* User profile / Account menu */}
       <div className="border-t p-3">
         {user && (
-          <div className="flex items-center gap-3 rounded-md px-2 py-2">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-              {initials}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">
-                {fullName}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {user.email}
-              </p>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  className="h-auto w-full justify-start gap-2.5 px-2 py-2 text-left hover:bg-muted"
+                  aria-label="Account menu"
+                />
+              }
+            >
+              <Avatar seed={user.id} name={fullName} size={32} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground">
+                  {fullName}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+              <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" side="top">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none text-foreground">
+                    {fullName}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={logoutMutation.isPending}
+                onClick={() => logoutMutation.mutate()}
+                className="cursor-pointer text-destructive focus:text-destructive"
+              >
+                <LogOut className="mr-2 size-4" />
+                <span>
+                  {logoutMutation.isPending ? "Signing out..." : "Log out"}
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
-        <Button
-          variant="ghost"
-          className="mt-1 w-full justify-start text-muted-foreground hover:text-foreground"
-          disabled={logoutMutation.isPending}
-          onClick={() => logoutMutation.mutate()}
-        >
-          <LogOut className="size-4" />
-          {logoutMutation.isPending ? "Signing out..." : "Log out"}
-        </Button>
       </div>
     </div>
   );

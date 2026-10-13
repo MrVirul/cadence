@@ -39,7 +39,7 @@ export function FindingCard({
   return (
     <div
       className={cn(
-        "rounded-lg border p-3.5 text-sm transition-colors",
+        "ai-finding-card rounded-lg border p-3.5 text-sm transition-colors",
         isBlocker
           ? "border-amber-300 bg-amber-50/70 text-foreground"
           : "border-indigo-200 bg-indigo-50/50 text-foreground"

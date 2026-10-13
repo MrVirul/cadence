@@ -27,6 +27,7 @@ import {
 import type { TeamDetailResponse } from "@/api/model";
 import { PageQueryGate } from "@/components/guards/PageQueryGate";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -250,15 +251,22 @@ function TeamsAdminWorkspace({ orgId }: { orgId: string }) {
                       </TableCell>
                       <TableCell className="px-4 py-3">
                         {team.lead_membership_id && lead ? (
-                          <div className="flex flex-col">
-                            <span className="text-sm text-foreground">
-                              {lead.user.name || lead.user.email}
-                            </span>
-                            {lead.user.name && (
-                              <span className="text-xs text-muted-foreground">
-                                {lead.user.email}
+                          <div className="flex items-center gap-2">
+                            <Avatar
+                              seed={lead.user.id}
+                              name={lead.user.name}
+                              size={24}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm text-foreground">
+                                {lead.user.name || lead.user.email}
                               </span>
-                            )}
+                              {lead.user.name && (
+                                <span className="text-xs text-muted-foreground">
+                                  {lead.user.email}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <Badge
@@ -715,6 +723,11 @@ function ManageTeamForm({
                       onCheckedChange={(val) =>
                         toggleMember(member.membership_id, Boolean(val))
                       }
+                    />
+                    <Avatar
+                      seed={member.user.id}
+                      name={member.user.name}
+                      size={24}
                     />
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">

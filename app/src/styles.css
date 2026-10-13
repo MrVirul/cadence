@@ -60,79 +60,96 @@
   /* Cadence brand tokens */
   --cadence-primary: #4f46e5;
   --cadence-primary-hover: #4338ca;
-  --cadence-ink: #0f172a;
+  --cadence-ink: #0b0b14;
+  --cadence-ink-hover: #1b1b2b;
   --cadence-surface-light: #ffffff;
-  --cadence-surface-dark: #0b1020;
-  --cadence-success: #16a34a;
-  --cadence-warning: #d97706;
+  --cadence-surface-dark: #14141f;
+  --cadence-success: #15803d;
+  --cadence-warning: #92400e;
   --cadence-danger: #dc2626;
 
+  /* Theme tokens - Light */
+  --background: #fbfaff;
+  --foreground: #0b0b14;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #0b0b14;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #0b0b14;
   --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: #0f172a;
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: #0f172a;
-  --destructive: #dc2626;
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --primary-hover: #4338ca;
+  --secondary: #0b0b14;
+  --secondary-foreground: #ffffff;
+  --secondary-hover: #1b1b2b;
+  --muted: #f3f1fa;
+  --muted-foreground: #52506b;
+  --accent: #f3f1fa;
+  --accent-foreground: #0b0b14;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --border: #e6e3f1;
+  --input: #e6e3f1;
   --ring: #4f46e5;
   --chart-1: #4f46e5;
-  --chart-2: #16a34a;
-  --chart-3: #d97706;
+  --chart-2: #15803d;
+  --chart-3: #92400e;
   --chart-4: #dc2626;
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: #0f172a;
+  --chart-5: #0b0b14;
+  --radius: 0.5rem;
+  --sidebar: #fbfaff;
+  --sidebar-foreground: #0b0b14;
   --sidebar-primary: #4f46e5;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-accent: #f3f1fa;
+  --sidebar-accent-foreground: #0b0b14;
+  --sidebar-border: #e6e3f1;
   --sidebar-ring: #4f46e5;
-  --background: #ffffff;
-  --foreground: #0f172a;
 }
 
 .dark {
-  --background: #0b1020;
-  --foreground: #f8fafc;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
-  --primary: #6366f1;
+  /* Theme tokens - Dark */
+  --background: #0b0b14;
+  --foreground: #f5f4fb;
+  --card: #14141f;
+  --card-foreground: #f5f4fb;
+  --popover: #14141f;
+  --popover-foreground: #f5f4fb;
+  --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
+  --primary-hover: #4338ca;
+  --secondary: #2a2a3d;
+  --secondary-foreground: #f5f4fb;
+  --secondary-hover: #373750;
+  --muted: #1c1c2b;
+  --muted-foreground: #a9a7c2;
+  --accent: #1c1c2b;
+  --accent-foreground: #f5f4fb;
   --destructive: #dc2626;
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: #6366f1;
-  --chart-1: #6366f1;
-  --chart-2: #16a34a;
-  --chart-3: #d97706;
+  --destructive-foreground: #ffffff;
+  --border: #2a2a3d;
+  --input: #2a2a3d;
+  --ring: #4f46e5;
+  --chart-1: #a5a0fa;
+  --chart-2: #15803d;
+  --chart-3: #92400e;
   --chart-4: #dc2626;
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: #0b1020;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #6366f1;
+  --chart-5: #a9a7c2;
+  --sidebar: #0b0b14;
+  --sidebar-foreground: #f5f4fb;
+  --sidebar-primary: #4f46e5;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: #6366f1;
+  --sidebar-accent: #1c1c2b;
+  --sidebar-accent-foreground: #f5f4fb;
+  --sidebar-border: #2a2a3d;
+  --sidebar-ring: #4f46e5;
+}
+
+.dark .text-primary {
+  color: #a5a0fa;
+}
+
+.dark .text-destructive {
+  color: #f87171;
 }
 
 @layer base {
@@ -151,58 +168,127 @@
   }
 }
 
-/* Loading logomark: the dome "lifts off" above the launchpad bar, loops. */
-@keyframes launch-liftoff {
-  0% {
-    transform: translateY(2px);
-    opacity: 0;
+/* Micro-interactions (CSS only, transform & opacity only, 150-250ms ease-out) */
+@media (prefers-reduced-motion: no-preference) {
+  /* Buttons pressed state & transitions */
+  button:active:not(:disabled),
+  [role="button"]:active:not([aria-disabled="true"]) {
+    transform: translateY(1px);
+    transition: transform 100ms ease-out;
   }
-  20% {
-    opacity: 1;
+
+  /* Task Checkbox scale pop & strike-through */
+  .task-checkbox-pop {
+    animation: taskPop 180ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  55% {
-    transform: translateY(-16px);
-    opacity: 0;
+  @keyframes taskPop {
+    0% {
+      transform: scale(0.9);
+    }
+    50% {
+      transform: scale(1.12);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
-  56% {
-    transform: translateY(2px);
-    opacity: 0;
+
+  .task-strike-through {
+    transition:
+      opacity 180ms ease-out,
+      text-decoration-color 180ms ease-out;
   }
-  100% {
-    transform: translateY(2px);
-    opacity: 0;
+
+  /* Progress bar width transition */
+  .progress-bar-transition {
+    transition: width 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* AI finding cards slide down and fade in */
+  .ai-finding-card {
+    animation: findingSlideDown 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes findingSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Applied flash highlight: soft purple that fades in 1.2s */
+  .applied-flash {
+    animation: appliedHighlight 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes appliedHighlight {
+    0% {
+      background-color: rgba(237, 233, 254, 0.7);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+  .dark .applied-flash {
+    animation: appliedHighlightDark 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes appliedHighlightDark {
+    0% {
+      background-color: rgba(79, 70, 229, 0.28);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  /* Status badge cross-fade */
+  .status-badge-fade {
+    transition:
+      opacity 180ms ease-out,
+      background-color 180ms ease-out,
+      color 180ms ease-out,
+      border-color 180ms ease-out;
+  }
+
+  /* Table row subtle hover background */
+  tr.interactive-table-row {
+    transition: background-color 150ms ease-out;
+  }
+  tr.interactive-table-row:hover {
+    background-color: color-mix(in srgb, var(--muted) 45%, transparent);
+  }
+
+  /* Low-contrast slow shimmer for skeletons */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 0%,
+      color-mix(in srgb, var(--muted) 65%, var(--card) 35%) 50%,
+      var(--muted) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeletonShimmerSlow 2.4s ease-in-out infinite;
+  }
+  @keyframes skeletonShimmerSlow {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
 }
 
-@keyframes launch-pad-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.launch-loader__dome {
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  animation: launch-liftoff 1.4s ease-in-out infinite;
-}
-
-.launch-loader__pad {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: launch-pad-pulse 1.4s ease-in-out infinite;
-}
-
+/* Reduced motion fallback: final static states with zero animation duration */
 @media (prefers-reduced-motion: reduce) {
-  .launch-loader__dome,
-  .launch-loader__pad {
-    animation: none;
-  }
-  .launch-loader__dome {
-    opacity: 1;
-    transform: none;
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
