@@ -104,18 +104,11 @@ async def _require_org_admin(ctx: OrgContextDependency) -> OrgContext:
     return ctx
 
 
-async def _require_org_owner(ctx: OrgContextDependency) -> OrgContext:
-    if _ROLE_RANK[ctx.role] < _ROLE_RANK["owner"]:
-        raise RoleForbiddenException()
-    return ctx
-
-
 # Dependency aliases for route signatures: the guards are intentionally named
 # `org_*` so they can never be confused with platform staff (`is_platform_staff`).
 OrgContextDependency = Annotated[OrgContext, Depends(get_org_context)]
 require_org_member = Annotated[OrgContext, Depends(_require_org_member)]
 require_org_admin = Annotated[OrgContext, Depends(_require_org_admin)]
-require_org_owner = Annotated[OrgContext, Depends(_require_org_owner)]
 
 
 def get_today() -> date:

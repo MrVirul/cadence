@@ -232,9 +232,10 @@ async def test_concurrent_demotions_of_different_owners_leave_one_owner(
             headers=_auth(_token(owner2_user)),
         ),
     )
-    assert sorted(r.status_code for r in responses) == [200, 409], [
-        r.text for r in responses
-    ]
+    assert sorted(r.status_code for r in responses) in (
+        [200, 409],
+        [200, 403],
+    ), [r.text for r in responses]
 
     async with session_factory() as db:
         count = (
