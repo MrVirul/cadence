@@ -8,6 +8,32 @@ import tailwindcss from "@tailwindcss/vite";
 // (see `public/_redirects`) and the router takes over on the client.
 export default defineConfig({
   resolve: { tsconfigPaths: true },
+  // No source maps in production — don't expose internals to the public.
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (
+            id.includes("node_modules/react") ||
+            id.includes("node_modules/react-dom")
+          ) {
+            return "react-vendor";
+          }
+          if (id.includes("node_modules/@tanstack")) {
+            return "tanstack-vendor";
+          }
+          if (
+            id.includes("node_modules/recharts") ||
+            id.includes("node_modules/d3-")
+          ) {
+            return "charts-vendor";
+          }
+          return undefined;
+        },
+      },
+    },
+  },
   plugins: [
     tailwindcss(),
     tanstackStart({ spa: { enabled: true } }),

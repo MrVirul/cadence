@@ -198,3 +198,9 @@ export {
   SelectTrigger,
   SelectValue,
 };
+
+export {
+  LabeledSelect,
+  type LabeledSelectOption,
+  type LabeledSelectProps,
+} from "./labeled-select";
