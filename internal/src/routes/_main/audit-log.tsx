@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { useAuditLogList } from "@/api/endpoints/audit/audit";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -139,7 +140,14 @@ function AuditLogPage() {
                           </Tooltip>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {item.staff_email}
+                          <div className="flex items-center gap-2">
+                            <Avatar
+                              seed={item.staff_user_id}
+                              name={item.staff_name || item.staff_email}
+                              size={24}
+                            />
+                            <span>{item.staff_email}</span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant={actionBadgeVariant(item.action)}>

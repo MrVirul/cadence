@@ -13,6 +13,7 @@ import {
 import { logout } from "@/api/endpoints/auth/auth";
 import { useCurrentUser } from "@/contexts/user-context";
 import { Logo } from "@/components/Logo";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -87,11 +88,6 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
     ? user.name || `${user.first_name} ${user.last_name}`.trim() || user.email
     : "";
 
-  const initials =
-    user &&
-    (`${user.first_name?.charAt(0) ?? ""}${user.last_name?.charAt(0) ?? ""}`.toUpperCase() ||
-      user.email.charAt(0).toUpperCase());
-
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="flex h-16 items-center justify-between border-b px-5">
@@ -102,7 +98,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
         >
           <Logo />
         </Link>
-        <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-[#B45309] uppercase dark:text-amber-400">
+        <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-amber-800 uppercase dark:text-amber-300">
           Staff
         </span>
       </div>
@@ -135,9 +131,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
       <div className="border-t p-3 space-y-1">
         {user && (
           <div className="flex items-center gap-3 rounded-md px-2 py-2">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-xs font-semibold text-[#B45309] dark:text-amber-400">
-              {initials}
-            </span>
+            <Avatar seed={user.id} name={displayName} size={36} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-foreground">
                 {displayName}

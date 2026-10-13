@@ -7,7 +7,6 @@ import {
   Building2,
   CheckCircle2,
   ShieldCheck,
-  User as UserIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -27,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -225,8 +225,8 @@ function UserDetailPage() {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <UserIcon className="size-6 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-3">
+            <Avatar seed={user.id} name={displayName} size={36} />
             <h1 className="text-2xl font-semibold tracking-tight">
               {displayName}
             </h1>

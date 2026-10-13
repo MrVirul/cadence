@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -367,7 +368,14 @@ function OrgDetailPage() {
                     org.members.map((member) => (
                       <TableRow key={member.email}>
                         <TableCell className="font-medium">
-                          {member.name || "—"}
+                          <div className="flex items-center gap-2.5">
+                            <Avatar
+                              seed=""
+                              name={member.name || member.email}
+                              size={28}
+                            />
+                            <span>{member.name || "—"}</span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {member.email}

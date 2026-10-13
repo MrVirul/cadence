@@ -4,6 +4,7 @@ import { Search, Users as UsersIcon, X } from "lucide-react";
 import { useUserList } from "@/api/endpoints/users/users";
 import { useCurrentUser } from "@/contexts/user-context";
 import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -184,28 +185,31 @@ function UsersPage() {
                       }
                     >
                       <TableCell className="font-medium">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Link
-                            to="/users/$userId"
-                            params={{ userId: user.id }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-                          >
-                            {displayName}
-                          </Link>
-                          {user.is_admin && (
-                            <Badge
-                              variant="outline"
-                              className="border-amber-500/30 bg-amber-500/10 text-[#B45309] dark:text-amber-400"
+                        <div className="flex items-center gap-2.5">
+                          <Avatar seed={user.id} name={displayName} size={28} />
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              to="/users/$userId"
+                              params={{ userId: user.id }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                             >
-                              Staff
-                            </Badge>
-                          )}
-                          {isSelf && (
-                            <span className="text-xs text-muted-foreground">
-                              (you)
-                            </span>
-                          )}
+                              {displayName}
+                            </Link>
+                            {user.is_admin && (
+                              <Badge
+                                variant="outline"
+                                className="border-amber-500/30 bg-amber-500/10 text-[#B45309] dark:text-amber-400"
+                              >
+                                Staff
+                              </Badge>
+                            )}
+                            {isSelf && (
+                              <span className="text-xs text-muted-foreground">
+                                (you)
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
