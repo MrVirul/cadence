@@ -1,5 +1,5 @@
 // Single source of truth for all copy on the Cadence marketing site.
-// Written in plain, spoken English with short sentences (under ~20 words).
+// Written in plain, spoken English with short sentences (under 20 words).
 // Zero banned hype words.
 
 export const copy = {
@@ -12,127 +12,186 @@ export const copy = {
   nav: {
     howItWorks: "How it works",
     theAi: "The AI",
-    forTeams: "For teams",
+    forLeads: "For leads",
     logIn: "Log in",
     getStarted: "Get started",
   },
   hero: {
-    badge: "Weekly Engineering Planning",
-    headlinePart1: "Plan the week.",
-    headlinePart2: "Ship one thing.",
-    supporting:
+    headline: "Plan the week. Ship one thing.",
+    paragraph:
       "Cadence is a weekly planning tool for engineering teams. Each engineer picks one thing to ship by Friday. Leads approve it fast, and an AI reviewer flags vague tasks.",
     cta: "Get started",
-    secondaryCta: "Log in",
-  },
-  howItWorks: {
-    title: "How it works",
-    subtitle:
-      "A weekly rhythm built around shipping, not around long task lists.",
-    steps: [
-      {
-        step: "01",
-        title: "Write the plan",
-        description:
-          "Write one main task with a why, a few sub-goals, and go-to-market goals.",
-      },
-      {
-        step: "02",
-        title: "Get it approved",
-        description:
-          "The team lead approves your plan or sends it back with a comment.",
-      },
-      {
-        step: "03",
-        title: "Track it through the week",
-        description:
-          "Tick tasks as you work, then close the week with an honest answer: did it ship?",
-      },
-    ],
-  },
-  aiSection: {
-    title: "The AI",
-    subtitle: "A reviewer that says 'that's not a result.'",
-    honestLine:
-      "The AI only suggests. You decide, and Cadence works without it.",
-    cardTitle: "Plan Review in Action",
-    card1: {
-      categoryLabel: "Main Task",
-      title: "Implement checkout",
-      finding1: {
-        tag: "Describes work, not a result",
+    sampleLink: "See a sample review",
+    productFrame: {
+      srDescription:
+        "Preview of the Cadence weekly planner showing a draft plan with an inline AI review suggestion.",
+      weekTitle: "Week of Oct 12",
+      status: "Draft",
+      team: "Platform",
+      mainLabel: "Main task (ship by Friday)",
+      mainTask: "Implement checkout",
+      whyLabel: "Why it matters",
+      mainWhy: "Failed renewals cause our top support tickets this month.",
+      subGoalsLabel: "Sub-goals",
+      subGoal1: "Handle expired cards in Stripe webhook listener",
+      subGoal2: "Add unit tests for payment failure retry logic",
+      gtmGoalsLabel: "Go-to-market goals",
+      gtmGoal1: "Post changelog update for failed renewal flow",
+      aiFinding: {
+        category: "Describes work, not a result",
         severity: "Blocker",
         problem: "Describes work, not a result.",
-        actionLabel: "Suggested title rewrite:",
+        rewriteLabel: "Suggested title rewrite:",
         rewrite: "Checkout handles expired cards, confirmed on staging",
-      },
-      finding2: {
-        tag: "Missing why",
-        severity: "Suggestion",
-        problem: "Main task has no reason.",
-        actionLabel: "Suggested 'why' rewrite:",
-        rewrite: "Failed renewals are our top support ticket this month",
-      },
-    },
-    card2: {
-      categoryLabel: "Plan & Goals",
-      title: "Goals & Milestones",
-      finding1: {
-        tag: "Missing go-to-market goal",
-        severity: "Suggestion",
-        problem: "Plan has no go-to-market goal.",
-        actionLabel: "Suggested task to add (Go-to-market goal):",
-        rewrite: "Announce card retry fix in #product-updates",
-      },
-      finding2: {
-        tag: "Suggested sub-goal",
-        severity: "Suggestion",
-        problem: "Main task needs verification steps before release.",
-        actionLabel: "Suggested task to add (Sub-goal):",
-        rewrite: "Verify webhook retries on staging before Friday release",
+        apply: "Apply",
+        dismiss: "Dismiss",
       },
     },
   },
-  forTeams: {
-    title: "For teams",
-    subtitle: "See the whole week without asking for updates.",
-    points: [
+  howAWeekRuns: {
+    heading: "How a week runs",
+    moments: [
       {
-        title: "See the whole week at a glance",
-        description:
-          "Check commitments across the team in one shared view without status pings.",
+        day: "Mon",
+        title: "Monday",
+        label: "Write the plan.",
+        detail: "One main task, a few sub-goals, and go-to-market goals.",
       },
       {
-        title: "Approve or send back with one comment",
-        description:
-          "Give clear feedback on Mondays so engineers know what success looks like.",
+        day: "Tue",
+        title: "Tuesday",
+        label: "Get it approved.",
+        detail: "Your lead approves it, or sends it back with a comment.",
       },
       {
-        title: "See who is on track and how many weeks shipped",
-        description:
-          "Follow progress through Friday and track real completion rates over time.",
+        day: "Wed–Thu",
+        title: "Wednesday – Thursday",
+        label: "Tick tasks as you finish them.",
+        detail: "",
+      },
+      {
+        day: "Fri",
+        title: "Friday",
+        label: "Close the week.",
+        detail: "Say honestly: did it ship?",
+      },
+    ] as const,
+  },
+  theAi: {
+    heading: "It says 'that's not a result.'",
+    intro:
+      "Before you submit, Cadence reads your plan the way a strict lead would. It checks four things:",
+    checks: [
+      "The task is a result you can check.",
+      "The main task says why it matters.",
+      "There is a go-to-market goal.",
+      "The work fits in a week.",
+    ],
+    closing: "It only suggests. You decide, and Cadence works without it.",
+    diffCard: {
+      vagueTask: "Implement checkout",
+      vagueReason: "Describes work, not a result",
+      rewriteTask: "Checkout handles expired cards, confirmed on staging",
+      gtmNotice:
+        "No go-to-market goal. Suggested: Announce the card retry fix in the changelog",
+      apply: "Apply",
+      dismiss: "Dismiss",
+    },
+  },
+  forLeads: {
+    heading: "See the whole week without asking for updates.",
+    tableTitle: "Platform, this week",
+    caption: "Example data",
+    legend: {
+      shipped: "Shipped",
+      notShipped: "Not shipped",
+      noPlan: "No plan",
+    },
+    headers: {
+      member: "Member",
+      status: "Status",
+      tasks: "Tasks",
+      shipped: "Shipped",
+      recentWeeks: "Last 6 weeks",
+    },
+    rows: [
+      {
+        name: "Alex Morgan",
+        isLead: true,
+        status: "Done",
+        statusVariant: "done" as const,
+        tasks: "5/5",
+        shipped: true,
+        history: [
+          "shipped",
+          "shipped",
+          "shipped",
+          "shipped",
+          "shipped",
+          "shipped",
+        ] as const,
+      },
+      {
+        name: "Sarah Chen",
+        isLead: false,
+        status: "Submitted",
+        statusVariant: "submitted" as const,
+        tasks: "2/4",
+        shipped: false,
+        history: [
+          "shipped",
+          "shipped",
+          "missed",
+          "shipped",
+          "shipped",
+          "none",
+        ] as const,
+      },
+      {
+        name: "Priya Nair",
+        isLead: false,
+        status: "Approved",
+        statusVariant: "approved" as const,
+        tasks: "3/5",
+        shipped: false,
+        history: [
+          "shipped",
+          "shipped",
+          "shipped",
+          "missed",
+          "shipped",
+          "shipped",
+        ] as const,
+      },
+      {
+        name: "David Kim",
+        isLead: false,
+        status: "Not started",
+        statusVariant: "not_started" as const,
+        tasks: "0/0",
+        shipped: false,
+        history: [
+          "shipped",
+          "missed",
+          "missed",
+          "shipped",
+          "shipped",
+          "missed",
+        ] as const,
       },
     ],
-    table: {
-      title: "Team Week",
-      subtitle: "Platform • Current Week",
-      headers: {
-        member: "Member",
-        status: "Status",
-        tasks: "Tasks",
-        shipped: "Shipped",
-        plan: "Plan",
-      },
-    },
+    benefits: [
+      "See who has submitted, who is approved and who is done.",
+      "Approve or send back with one comment.",
+      "Track how many weeks each person shipped.",
+    ],
   },
-  cta: {
-    headline: "Start your team's weekly cadence.",
-    supporting:
-      "One commitment per engineer. Quick approvals. Honest Friday reviews.",
-    button: "Get started",
+  closing: {
+    heading: "Plan your next week in Cadence.",
+    cta: "Get started",
   },
   footer: {
-    copyright: "Cadence. All rights reserved.",
     tagline: "Weekly planning for engineering teams.",
+    copyright: "Cadence. All rights reserved.",
   },
 };
