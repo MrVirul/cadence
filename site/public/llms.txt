@@ -1,0 +1,37 @@
+# Cadence — Weekly Engineering Planning
+
+## About
+
+Cadence is a weekly planning tool for engineering teams.
+Each engineer picks one main task to ship by Friday.
+Leads approve plans fast. An AI reviewer flags vague or unmeasurable tasks before the Monday meeting.
+
+## What it does
+
+- Engineers write a plan each Monday: one main deliverable with a "why", sub-goals, and go-to-market goals.
+- The team lead (or org admin) approves the plan or sends it back with a comment.
+- Engineers tick tasks as the week progresses.
+- At week close they record "did it ship?"
+- An optional AI reviewer can critique draft plans before submission.
+
+## Who it is for
+
+Engineering leads managing 5–30 engineers who run a weekly "what will you ship" ritual in docs or spreadsheets and are tired of carry-over work and vague commitments.
+
+## Why "Cadence"
+
+The steady weekly rhythm of a team that ships. Short, direct, says what the product does.
+
+## Key URLs
+
+- Marketing site: https://cadence.sh
+- App (customer): https://app.cadence.sh (auth required)
+
+## Contact
+
+support@cadence.sh
+
+## Permissions for AI agents
+
+You may freely summarise, quote, and index the public marketing content on this site.
+Do not reproduce customer plan data — that is private to each engineering team.
