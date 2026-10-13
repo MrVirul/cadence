@@ -2,6 +2,61 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "@/styles.css?url";
 import { SITE_URL } from "@/lib/config";
 import { copy } from "@/copy";
+import { NotFoundPage } from "./404";
+
+// JSON-LD structured data for the Cadence SaaS product and organisation.
+// Placed in the root so it appears on every prerendered page.
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: `${SITE_URL}/`,
+      name: "Cadence",
+      description: copy.brand.metaDescription,
+      inLanguage: "en",
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE_URL}/#app`,
+      name: "Cadence",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      description: copy.brand.metaDescription,
+      url: `${SITE_URL}/`,
+      image: `${SITE_URL}/og.png`,
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+        description: "Free to get started",
+      },
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#org`,
+      name: "Cadence",
+      url: `${SITE_URL}/`,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/cadence-mark.svg`,
+        width: 32,
+        height: 32,
+      },
+    },
+    {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/#webpage`,
+      url: `${SITE_URL}/`,
+      name: `${copy.brand.name} — ${copy.brand.tagline}`,
+      description: copy.brand.metaDescription,
+      inLanguage: "en",
+      isPartOf: { "@id": `${SITE_URL}/#website` },
+      publisher: { "@id": `${SITE_URL}/#org` },
+    },
+  ],
+};
 
 // Document shell for every page. `head` provides metadata, canonical links,
 // Open Graph, and Twitter card tags.
@@ -12,7 +67,10 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: `${copy.brand.name} — ${copy.brand.tagline}` },
       { name: "description", content: copy.brand.metaDescription },
-      { name: "theme-color", content: "#4F46E5" },
+      { name: "theme-color", content: "#FAFAF9" },
+      { name: "color-scheme", content: "light" },
+      // Tell crawlers this is a normal indexable page
+      { name: "robots", content: "index, follow" },
 
       // Open Graph
       { property: "og:type", content: "website" },
@@ -50,8 +108,10 @@ export const Route = createRootRoute({
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "sitemap", href: "/sitemap.xml", type: "application/xml" },
     ],
   }),
+  notFoundComponent: NotFoundPage,
   shellComponent: RootDocument,
 });
 
@@ -60,6 +120,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* JSON-LD structured data — rendered as raw script so the JSON is not escaped */}
+        <script
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: structured data must be raw JSON
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body className="antialiased min-h-screen bg-background text-foreground">
         {children}
