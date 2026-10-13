@@ -12,7 +12,12 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Cadence Internal" },
-      { name: "description", content: "Cadence internal staff console." },
+      {
+        name: "description",
+        content: "Cadence internal staff console. Staff access only.",
+      },
+      // Staff console — never indexed.
+      { name: "robots", content: "noindex, nofollow" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

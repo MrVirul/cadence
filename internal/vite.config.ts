@@ -8,6 +8,26 @@ import tailwindcss from "@tailwindcss/vite";
 // (see `public/_redirects`) and the router takes over on the client.
 export default defineConfig({
   resolve: { tsconfigPaths: true },
+  // No source maps in production — internal tool but still best practice.
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (
+            id.includes("node_modules/react") ||
+            id.includes("node_modules/react-dom")
+          ) {
+            return "react-vendor";
+          }
+          if (id.includes("@tanstack")) {
+            return "tanstack-vendor";
+          }
+          return undefined;
+        },
+      },
+    },
+  },
   plugins: [
     tailwindcss(),
     tanstackStart({ spa: { enabled: true } }),
