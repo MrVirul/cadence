@@ -40,9 +40,10 @@ export const copy = {
       aiFinding: {
         category: "Describes work, not a result",
         severity: "Blocker",
-        problem: "Describes work, not a result.",
+        problem: "Say what will be true when it is done.",
         rewriteLabel: "Suggested title rewrite:",
         rewrite: "Checkout handles expired cards, confirmed on staging",
+        applied: "Applied",
         apply: "Apply",
         dismiss: "Dismiss",
       },
@@ -67,7 +68,7 @@ export const copy = {
         day: "Wed–Thu",
         title: "Wednesday – Thursday",
         label: "Tick tasks as you finish them.",
-        detail: "",
+        detail: "The commitment is locked; check off tasks as they land.",
       },
       {
         day: "Fri",
@@ -78,7 +79,7 @@ export const copy = {
     ] as const,
   },
   theAi: {
-    heading: "It says 'that's not a result.'",
+    heading: "It says ‘that’s not a result.’",
     intro:
       "Before you submit, Cadence reads your plan the way a strict lead would. It checks four things:",
     checks: [
@@ -192,6 +193,8 @@ export const copy = {
   },
   footer: {
     tagline: "Weekly planning for engineering teams.",
+    storysetCredit: "Illustration by Storyset",
+    storysetUrl: "https://storyset.com",
     copyright: "Cadence. All rights reserved.",
   },
 };

@@ -55,61 +55,63 @@
     "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, monospace;
 
-  /* Cadence brand tokens */
+  /* Cadence Brand Tokens (Light Only) */
   --cadence-primary: #4f46e5;
   --cadence-primary-hover: #4338ca;
-  --cadence-ink: #0f172a;
-  --cadence-surface-light: #ffffff;
-  --cadence-surface-subtle: #f4f4f2;
-  --cadence-border: #e7e5e4;
-  --cadence-success: #16a34a;
-  --cadence-warning: #d97706;
-  --cadence-danger: #dc2626;
+  --cadence-primary-50: #f5f3ff;
+  --cadence-primary-100: #ede9fe;
+  --cadence-primary-200: #ddd6fe;
 
-  /* Light theme: page #fafaf9, surfaces #ffffff, subtle surface #f4f4f2, borders #e7e5e4, ink #0f172a, secondary text #475569 */
-  --background: #fafaf9;
-  --foreground: #0f172a;
+  --cadence-ink: #0b0b14;
+  --cadence-ink-hover: #1b1b2b;
+
+  --cadence-page: #fbfafe;
+  --cadence-surface: #ffffff;
+  --cadence-subtle: #f3f1fa;
+  --cadence-border: #e6e3f1;
+  --cadence-text-secondary: #52506b;
+
+  --cadence-success: #15803d;
+  --cadence-success-bg: #f0fdf4;
+  --cadence-warning: #92400e;
+  --cadence-warning-bg: #fffbeb;
+  --cadence-danger: #b91c1c;
+  --cadence-danger-bg: #fef2f2;
+
+  /* Theme mappings */
+  --background: #fbfafe;
+  --foreground: #0b0b14;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #0b0b14;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #0b0b14;
   --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --secondary: #f4f4f2;
-  --secondary-foreground: #0f172a;
-  --muted: #f4f4f2;
-  --muted-foreground: #475569;
-  --accent: #f4f4f2;
-  --accent-foreground: #0f172a;
-  --destructive: #dc2626;
-  --border: #e7e5e4;
-  --input: #e7e5e4;
+  --secondary: #f3f1fa;
+  --secondary-foreground: #0b0b14;
+  --muted: #f3f1fa;
+  --muted-foreground: #52506b;
+  --accent: #f5f3ff;
+  --accent-foreground: #4f46e5;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --border: #e6e3f1;
+  --input: #e6e3f1;
   --ring: #4f46e5;
   --chart-1: #4f46e5;
-  --chart-2: #16a34a;
-  --chart-3: #d97706;
-  --chart-4: #dc2626;
-  --chart-5: #0f172a;
+  --chart-2: #15803d;
+  --chart-3: #92400e;
+  --chart-4: #b91c1c;
+  --chart-5: #0b0b14;
   --radius: 12px;
-  --sidebar: #fafaf9;
-  --sidebar-foreground: #0f172a;
+  --sidebar: #fbfafe;
+  --sidebar-foreground: #0b0b14;
   --sidebar-primary: #4f46e5;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f4f4f2;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e7e5e4;
+  --sidebar-accent: #f3f1fa;
+  --sidebar-accent-foreground: #0b0b14;
+  --sidebar-border: #e6e3f1;
   --sidebar-ring: #4f46e5;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 @layer base {
@@ -122,5 +124,232 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ==========================================================================
+   Motion System
+   Rule: CSS only, transform & opacity only, ease-out cubic-bezier(.22,1,.36,1).
+   Fallback: with reduced-motion OR when JS is not enabled (no .js class),
+   everything renders in its complete, visible, static final state.
+   ========================================================================== */
+
+/* Button interactive states */
+.btn-primary {
+  background-color: var(--cadence-primary);
+  color: #ffffff;
+  border-radius: 6px;
+  transition:
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.btn-primary:hover {
+  background-color: var(--cadence-primary-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+.btn-primary:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--cadence-primary);
+}
+
+.btn-secondary {
+  background-color: var(--cadence-ink);
+  color: #ffffff;
+  border-radius: 6px;
+  transition:
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.btn-secondary:hover {
+  background-color: var(--cadence-ink-hover);
+  transform: translateY(-1px);
+}
+.btn-secondary:active {
+  transform: translateY(0);
+}
+.btn-secondary:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--cadence-ink);
+}
+
+/* Arrow nudge on hover */
+.arrow-nudge {
+  display: inline-block;
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .arrow-nudge,
+a:hover .arrow-nudge {
+  transform: translateX(2px);
+}
+
+/* Sticky Header Scroll Shadow */
+header.header-scrolled {
+  box-shadow: 0 4px 20px -2px rgba(11, 11, 20, 0.05);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Scroll reveal for sections */
+  html.js .section-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Hero load stagger */
+  html.js .hero-fade-up {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: heroFadeUp 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  html.js .hero-stagger-1 {
+    animation-delay: 0ms;
+  }
+  html.js .hero-stagger-2 {
+    animation-delay: 70ms;
+  }
+  html.js .hero-stagger-3 {
+    animation-delay: 140ms;
+  }
+  html.js .hero-stagger-4 {
+    animation-delay: 210ms;
+  }
+
+  @keyframes heroFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Week rail animations */
+  html.js .rail-line-progress {
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed .rail-line-progress {
+    transform: scaleX(1);
+  }
+
+  html.js .rail-line-progress-v {
+    transform-origin: top center;
+    transform: scaleY(0);
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed .rail-line-progress-v {
+    transform: scaleY(1);
+  }
+
+  html.js .rail-dot {
+    transition:
+      transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 400ms ease,
+      background-color 400ms ease;
+  }
+  html.js .section-reveal.is-revealed .rail-dot {
+    border-color: var(--cadence-primary);
+  }
+
+  html.js .rail-dot-fri {
+    transform: scale(0.6);
+    opacity: 0.4;
+    transition:
+      transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed .rail-dot-fri {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  /* Team table row stagger */
+  html.js .team-row {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed .team-row {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  html.js .team-avatar {
+    transform: scale(0.8);
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed .team-avatar {
+    transform: scale(1);
+  }
+
+  /* History square pops */
+  html.js .history-mark {
+    transform: scale(0.4);
+    opacity: 0;
+    transition:
+      transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  html.js .section-reveal.is-revealed .history-mark {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  /* Gentle illustration float: only while in view, 7s infinite */
+  @keyframes illustrationFloat {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  .float-in-view {
+    animation: illustrationFloat 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
   }
 }

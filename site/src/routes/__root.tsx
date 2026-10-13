@@ -67,7 +67,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: `${copy.brand.name} — ${copy.brand.tagline}` },
       { name: "description", content: copy.brand.metaDescription },
-      { name: "theme-color", content: "#FAFAF9" },
+      { name: "theme-color", content: "#FBFAFF" },
       { name: "color-scheme", content: "light" },
       // Tell crawlers this is a normal indexable page
       { name: "robots", content: "index, follow" },
@@ -120,6 +120,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: inline script to signal JS availability before render
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js');",
+          }}
+        />
         {/* JSON-LD structured data — rendered as raw script so the JSON is not escaped */}
         <script
           type="application/ld+json"
