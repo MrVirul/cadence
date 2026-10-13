@@ -200,191 +200,221 @@ export function HomePage() {
 
             {/* Rendered plan review components */}
             <div className="mt-12 grid gap-6 md:grid-cols-2">
-              {/* Card 1: Not a result */}
-              <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="min-w-0">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Main Task
-                    </span>
-                    <h3 className="font-semibold text-foreground text-base">
-                      {copy.aiSection.findings.resultTask.originalTitle}
-                    </h3>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200 text-xs shrink-0"
-                  >
-                    Flagged
-                  </Badge>
-                </div>
-
-                {/* Rendered finding card */}
-                <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50/70 p-4 text-foreground dark:border-amber-800/80 dark:bg-amber-950/30">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <AlertTriangle
-                      className="size-4 shrink-0 text-amber-600 dark:text-amber-400"
-                      aria-hidden="true"
-                    />
+              {/* Card 1: Main Task Review (Blocker + Suggestion) */}
+              <div className="rounded-xl border border-border bg-card p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {copy.aiSection.card1.categoryLabel}
+                      </span>
+                      <h3 className="font-semibold text-foreground text-base">
+                        {copy.aiSection.card1.title}
+                      </h3>
+                    </div>
                     <Badge
                       variant="outline"
-                      className="border-amber-300 bg-amber-100/90 text-amber-900 dark:border-amber-700 dark:bg-amber-900/60 dark:text-amber-100 text-xs font-medium"
+                      className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200 text-xs shrink-0"
                     >
-                      {copy.aiSection.findings.resultTask.tag}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="border-border bg-background text-xs capitalize text-muted-foreground"
-                    >
-                      Blocker
+                      1 blocker • 1 suggestion
                     </Badge>
                   </div>
 
-                  <p className="mt-2.5 text-sm text-foreground">
-                    {copy.aiSection.findings.resultTask.problem}
-                  </p>
+                  <div className="mt-4 space-y-3.5">
+                    {/* Finding 1: Blocker (Dark Amber Tint) */}
+                    <div className="rounded-lg border border-[#b45309] bg-[#451a03] p-4 text-[#fef3c7] shadow-sm">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <AlertTriangle
+                          className="size-4 shrink-0 text-[#fde68a]"
+                          aria-hidden="true"
+                        />
+                        <span className="inline-flex items-center rounded-md border border-[#b45309] bg-[#78350f] px-2 py-0.5 text-xs font-medium text-[#fef3c7]">
+                          {copy.aiSection.card1.finding1.tag}
+                        </span>
+                        <span className="inline-flex items-center rounded-md border border-[#dc2626] bg-[#991b1b] px-2 py-0.5 text-xs font-semibold text-[#fef2f2] uppercase tracking-wide">
+                          {copy.aiSection.card1.finding1.severity}
+                        </span>
+                      </div>
 
-                  <div className="mt-3 rounded-md border border-border bg-background/95 p-3">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {copy.aiSection.findings.resultTask.actionLabel}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">
-                      {copy.aiSection.findings.resultTask.rewrite}
-                    </p>
-                  </div>
+                      <p className="mt-2.5 text-xs leading-relaxed text-[#fef3c7]">
+                        {copy.aiSection.card1.finding1.problem}
+                      </p>
 
-                  {/* Visual buttons matching app FindingCard style */}
-                  <div
-                    aria-hidden="true"
-                    className="mt-3.5 flex items-center gap-2 select-none"
-                  >
-                    <span className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-xs">
-                      <Check className="size-3.5" />
-                      Apply
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted">
-                      <X className="size-3.5" />
-                      Dismiss
-                    </span>
+                      <div className="mt-3 rounded-md border border-[#78350f] bg-[#270e02] p-3">
+                        <p className="text-[11px] font-medium text-[#fde68a]">
+                          {copy.aiSection.card1.finding1.actionLabel}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-[#ffffff]">
+                          {copy.aiSection.card1.finding1.rewrite}
+                        </p>
+                      </div>
+
+                      <div
+                        aria-hidden="true"
+                        className="mt-3.5 flex items-center gap-2 select-none"
+                      >
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-[#4F46E5] hover:bg-[#4338CA] px-3 py-1.5 text-xs font-medium text-white shadow-xs cursor-pointer">
+                          <Check className="size-3.5" />
+                          Apply
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-900/60 hover:bg-amber-800/80 px-3 py-1.5 text-xs font-medium text-[#fef3c7] shadow-xs cursor-pointer">
+                          <X className="size-3.5" />
+                          Dismiss
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Finding 2: Suggestion (Dark Indigo Tint) */}
+                    <div className="rounded-lg border border-[#4338ca] bg-[#1e1b4b] p-4 text-[#e0e7ff] shadow-sm">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Info
+                          className="size-4 shrink-0 text-[#c7d2fe]"
+                          aria-hidden="true"
+                        />
+                        <span className="inline-flex items-center rounded-md border border-[#4f46e5] bg-[#312e81] px-2 py-0.5 text-xs font-medium text-[#e0e7ff]">
+                          {copy.aiSection.card1.finding2.tag}
+                        </span>
+                        <span className="inline-flex items-center rounded-md border border-[#475569] bg-[#1e293b] px-2 py-0.5 text-xs font-medium text-[#f8fafc]">
+                          {copy.aiSection.card1.finding2.severity}
+                        </span>
+                      </div>
+
+                      <p className="mt-2.5 text-xs leading-relaxed text-[#e0e7ff]">
+                        {copy.aiSection.card1.finding2.problem}
+                      </p>
+
+                      <div className="mt-3 rounded-md border border-[#3730a3] bg-[#100e2b] p-3">
+                        <p className="text-[11px] font-medium text-[#c7d2fe]">
+                          {copy.aiSection.card1.finding2.actionLabel}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-[#ffffff]">
+                          {copy.aiSection.card1.finding2.rewrite}
+                        </p>
+                      </div>
+
+                      <div
+                        aria-hidden="true"
+                        className="mt-3.5 flex items-center gap-2 select-none"
+                      >
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-[#4F46E5] hover:bg-[#4338CA] px-3 py-1.5 text-xs font-medium text-white shadow-xs cursor-pointer">
+                          <Check className="size-3.5" />
+                          Apply
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-400/40 bg-indigo-900/60 hover:bg-indigo-800/80 px-3 py-1.5 text-xs font-medium text-[#e0e7ff] shadow-xs cursor-pointer">
+                          <X className="size-3.5" />
+                          Dismiss
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Card 2: Missing Why & Missing GTM Goal */}
-              <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="min-w-0">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Main Task & Plan Goals
-                    </span>
-                    <h3 className="font-semibold text-foreground text-base">
-                      {copy.aiSection.findings.missingWhy.originalTitle}
-                    </h3>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-200 text-xs shrink-0"
-                  >
-                    2 suggestions
-                  </Badge>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  {/* Finding 2a: Missing Why */}
-                  <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3.5 text-foreground dark:border-indigo-900/60 dark:bg-indigo-950/20">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Info
-                        className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
-                        aria-hidden="true"
-                      />
-                      <Badge
-                        variant="outline"
-                        className="border-indigo-200 bg-indigo-100/90 text-indigo-900 dark:border-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-100 text-xs font-medium"
-                      >
-                        {copy.aiSection.findings.missingWhy.tag}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-border bg-background text-xs capitalize text-muted-foreground"
-                      >
-                        Suggestion
-                      </Badge>
+              {/* Card 2: Plan & Goals Review (Two Suggestions) */}
+              <div className="rounded-xl border border-border bg-card p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-border pb-3">
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {copy.aiSection.card2.categoryLabel}
+                      </span>
+                      <h3 className="font-semibold text-foreground text-base">
+                        {copy.aiSection.card2.title}
+                      </h3>
                     </div>
-
-                    <p className="mt-2 text-xs text-foreground">
-                      {copy.aiSection.findings.missingWhy.problem}
-                    </p>
-
-                    <div className="mt-2 rounded-md border border-border bg-background/95 p-2.5">
-                      <p className="text-[11px] font-medium text-muted-foreground">
-                        {copy.aiSection.findings.missingWhy.actionLabel}
-                      </p>
-                      <p className="mt-0.5 text-xs font-semibold text-foreground">
-                        {copy.aiSection.findings.missingWhy.rewrite}
-                      </p>
-                    </div>
-
-                    <div
-                      aria-hidden="true"
-                      className="mt-2.5 flex items-center gap-2 select-none"
+                    <Badge
+                      variant="outline"
+                      className="border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-200 text-xs shrink-0"
                     >
-                      <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground shadow-xs">
-                        <Check className="size-3" />
-                        Apply
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted">
-                        <X className="size-3" />
-                        Dismiss
-                      </span>
-                    </div>
+                      2 suggestions
+                    </Badge>
                   </div>
 
-                  {/* Finding 2b: Missing GTM */}
-                  <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3.5 text-foreground dark:border-indigo-900/60 dark:bg-indigo-950/20">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Info
-                        className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
+                  <div className="mt-4 space-y-3.5">
+                    {/* Finding 1: Missing GTM (Dark Indigo Tint) */}
+                    <div className="rounded-lg border border-[#4338ca] bg-[#1e1b4b] p-4 text-[#e0e7ff] shadow-sm">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Info
+                          className="size-4 shrink-0 text-[#c7d2fe]"
+                          aria-hidden="true"
+                        />
+                        <span className="inline-flex items-center rounded-md border border-[#4f46e5] bg-[#312e81] px-2 py-0.5 text-xs font-medium text-[#e0e7ff]">
+                          {copy.aiSection.card2.finding1.tag}
+                        </span>
+                        <span className="inline-flex items-center rounded-md border border-[#475569] bg-[#1e293b] px-2 py-0.5 text-xs font-medium text-[#f8fafc]">
+                          {copy.aiSection.card2.finding1.severity}
+                        </span>
+                      </div>
+
+                      <p className="mt-2.5 text-xs leading-relaxed text-[#e0e7ff]">
+                        {copy.aiSection.card2.finding1.problem}
+                      </p>
+
+                      <div className="mt-3 rounded-md border border-[#3730a3] bg-[#100e2b] p-3">
+                        <p className="text-[11px] font-medium text-[#c7d2fe]">
+                          {copy.aiSection.card2.finding1.actionLabel}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-[#ffffff]">
+                          {copy.aiSection.card2.finding1.rewrite}
+                        </p>
+                      </div>
+
+                      <div
                         aria-hidden="true"
-                      />
-                      <Badge
-                        variant="outline"
-                        className="border-indigo-200 bg-indigo-100/90 text-indigo-900 dark:border-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-100 text-xs font-medium"
+                        className="mt-3.5 flex items-center gap-2 select-none"
                       >
-                        {copy.aiSection.findings.missingGtm.tag}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-border bg-background text-xs capitalize text-muted-foreground"
-                      >
-                        Suggestion
-                      </Badge>
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-[#4F46E5] hover:bg-[#4338CA] px-3 py-1.5 text-xs font-medium text-white shadow-xs cursor-pointer">
+                          <Check className="size-3.5" />
+                          Apply
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-400/40 bg-indigo-900/60 hover:bg-indigo-800/80 px-3 py-1.5 text-xs font-medium text-[#e0e7ff] shadow-xs cursor-pointer">
+                          <X className="size-3.5" />
+                          Dismiss
+                        </span>
+                      </div>
                     </div>
 
-                    <p className="mt-2 text-xs text-foreground">
-                      {copy.aiSection.findings.missingGtm.problem}
-                    </p>
+                    {/* Finding 2: Sub-goal (Dark Indigo Tint) */}
+                    <div className="rounded-lg border border-[#4338ca] bg-[#1e1b4b] p-4 text-[#e0e7ff] shadow-sm">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Info
+                          className="size-4 shrink-0 text-[#c7d2fe]"
+                          aria-hidden="true"
+                        />
+                        <span className="inline-flex items-center rounded-md border border-[#4f46e5] bg-[#312e81] px-2 py-0.5 text-xs font-medium text-[#e0e7ff]">
+                          {copy.aiSection.card2.finding2.tag}
+                        </span>
+                        <span className="inline-flex items-center rounded-md border border-[#475569] bg-[#1e293b] px-2 py-0.5 text-xs font-medium text-[#f8fafc]">
+                          {copy.aiSection.card2.finding2.severity}
+                        </span>
+                      </div>
 
-                    <div className="mt-2 rounded-md border border-border bg-background/95 p-2.5">
-                      <p className="text-[11px] font-medium text-muted-foreground">
-                        {copy.aiSection.findings.missingGtm.actionLabel}
+                      <p className="mt-2.5 text-xs leading-relaxed text-[#e0e7ff]">
+                        {copy.aiSection.card2.finding2.problem}
                       </p>
-                      <p className="mt-0.5 text-xs font-semibold text-foreground">
-                        {copy.aiSection.findings.missingGtm.rewrite}
-                      </p>
-                    </div>
 
-                    <div
-                      aria-hidden="true"
-                      className="mt-2.5 flex items-center gap-2 select-none"
-                    >
-                      <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground shadow-xs">
-                        <Check className="size-3" />
-                        Apply
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted">
-                        <X className="size-3" />
-                        Dismiss
-                      </span>
+                      <div className="mt-3 rounded-md border border-[#3730a3] bg-[#100e2b] p-3">
+                        <p className="text-[11px] font-medium text-[#c7d2fe]">
+                          {copy.aiSection.card2.finding2.actionLabel}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-[#ffffff]">
+                          {copy.aiSection.card2.finding2.rewrite}
+                        </p>
+                      </div>
+
+                      <div
+                        aria-hidden="true"
+                        className="mt-3.5 flex items-center gap-2 select-none"
+                      >
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-[#4F46E5] hover:bg-[#4338CA] px-3 py-1.5 text-xs font-medium text-white shadow-xs cursor-pointer">
+                          <Check className="size-3.5" />
+                          Apply
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-400/40 bg-indigo-900/60 hover:bg-indigo-800/80 px-3 py-1.5 text-xs font-medium text-[#e0e7ff] shadow-xs cursor-pointer">
+                          <X className="size-3.5" />
+                          Dismiss
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -449,7 +479,7 @@ export function HomePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border text-foreground">
-                    {/* Row 1: Approved */}
+                    {/* Row 1: Alex: Done, 5/5, Shipped */}
                     <tr className="hover:bg-muted/40 transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="font-medium text-foreground flex items-center gap-1.5">
@@ -461,8 +491,52 @@ export function HomePage() {
                             Lead
                           </Badge>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          alex@northwind.test
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800/80 dark:bg-emerald-950/40 dark:text-emerald-200"
+                        >
+                          Done
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="h-2 w-16 overflow-hidden rounded-full bg-muted"
+                            aria-hidden="true"
+                          >
+                            <div className="h-full rounded-full bg-emerald-600 w-full" />
+                          </div>
+                          <span className="text-xs font-medium tabular-nums">
+                            5 / 5
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800/80 dark:bg-emerald-950/40 dark:text-emerald-200"
+                        >
+                          <CheckCircle2
+                            className="mr-1 size-3.5 text-emerald-600 dark:text-emerald-400"
+                            aria-hidden="true"
+                          />
+                          Shipped
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <span className="text-xs font-medium text-primary">
+                          View
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Row 2: Approved, 3/5, a dash */}
+                    <tr className="hover:bg-muted/40 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-medium text-foreground">
+                          Elena Rostova
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
@@ -487,16 +561,7 @@ export function HomePage() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
-                        <Badge
-                          variant="outline"
-                          className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800/80 dark:bg-emerald-950/40 dark:text-emerald-200"
-                        >
-                          <CheckCircle2
-                            className="mr-1 size-3.5 text-emerald-600 dark:text-emerald-400"
-                            aria-hidden="true"
-                          />
-                          Shipped
-                        </Badge>
+                        <span className="text-xs text-muted-foreground">—</span>
                       </td>
                       <td className="px-4 py-3.5 text-right">
                         <span className="text-xs font-medium text-primary">
@@ -505,14 +570,11 @@ export function HomePage() {
                       </td>
                     </tr>
 
-                    {/* Row 2: Submitted */}
+                    {/* Row 3: Sarah: Submitted, 2/4, a dash */}
                     <tr className="hover:bg-muted/40 transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="font-medium text-foreground">
                           Sarah Chen
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          sarah@northwind.test
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
@@ -546,14 +608,11 @@ export function HomePage() {
                       </td>
                     </tr>
 
-                    {/* Row 3: Not started */}
+                    {/* Row 4: David: Not started, 0/0, a dash */}
                     <tr className="hover:bg-muted/40 transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="font-medium text-foreground">
                           David Kim
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          david@northwind.test
                         </div>
                       </td>
                       <td className="px-4 py-3.5">

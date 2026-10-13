@@ -21,13 +21,14 @@ export const copy = {
     headlinePart1: "Plan the week.",
     headlinePart2: "Ship one thing.",
     supporting:
-      "Cadence is the weekly planning tool for engineering teams: every engineer commits to one thing to ship by Friday, leads approve in minutes, and an AI reviewer pushes back on vague tasks before the Monday meeting does.",
+      "Cadence is a weekly planning tool for engineering teams. Each engineer picks one thing to ship by Friday. Leads approve it fast, and an AI reviewer flags vague tasks.",
     cta: "Get started",
     secondaryCta: "Log in",
   },
   howItWorks: {
     title: "How it works",
-    subtitle: "A weekly rhythm built around shipping, not backlog grooming.",
+    subtitle:
+      "A weekly rhythm built around shipping, not around long task lists.",
     steps: [
       {
         step: "01",
@@ -55,26 +56,40 @@ export const copy = {
     honestLine:
       "The AI only suggests. You decide, and Cadence works without it.",
     cardTitle: "Plan Review in Action",
-    findings: {
-      resultTask: {
-        originalTitle: "Implement checkout",
-        tag: "Not a checkable result",
+    card1: {
+      categoryLabel: "Main Task",
+      title: "Implement checkout",
+      finding1: {
+        tag: "Describes work, not a result",
+        severity: "Blocker",
         problem: "Describes work, not a result.",
         actionLabel: "Suggested title rewrite:",
         rewrite: "Checkout handles expired cards, confirmed on staging",
       },
-      missingWhy: {
-        originalTitle: "Refactor billing webhooks",
+      finding2: {
         tag: "Missing why",
+        severity: "Suggestion",
         problem: "Main task has no reason.",
         actionLabel: "Suggested 'why' rewrite:",
         rewrite: "Failed renewals are our top support ticket this month",
       },
-      missingGtm: {
+    },
+    card2: {
+      categoryLabel: "Plan & Goals",
+      title: "Goals & Milestones",
+      finding1: {
         tag: "Missing go-to-market goal",
+        severity: "Suggestion",
         problem: "Plan has no go-to-market goal.",
         actionLabel: "Suggested task to add (Go-to-market goal):",
         rewrite: "Announce card retry fix in #product-updates",
+      },
+      finding2: {
+        tag: "Suggested sub-goal",
+        severity: "Suggestion",
+        problem: "Main task needs verification steps before release.",
+        actionLabel: "Suggested task to add (Sub-goal):",
+        rewrite: "Verify webhook retries on staging before Friday release",
       },
     },
   },
@@ -100,7 +115,7 @@ export const copy = {
     ],
     table: {
       title: "Team Week",
-      subtitle: "Sprint Team • Current Week",
+      subtitle: "Platform • Current Week",
       headers: {
         member: "Member",
         status: "Status",
