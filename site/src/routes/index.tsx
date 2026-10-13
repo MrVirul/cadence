@@ -1,154 +1,681 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  AlertTriangle,
   ArrowRight,
   Check,
-  Calendar,
-  Sparkles,
   CheckCircle2,
+  Info,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo, Logomark } from "@/components/logo";
+import { APP_URL } from "@/lib/config";
+import { copy } from "@/copy";
 
-const pillars = [
-  {
-    icon: Calendar,
-    title: "The Weekly Commitment",
-    body: "Every engineer commits to one main thing to ship by Friday. No vague tickets, no carry-over work.",
-  },
-  {
-    icon: Sparkles,
-    title: "AI Reviewer in the Loop",
-    body: "Pushes back on vague tasks and missing why statements before the Monday morning meeting does.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Leads Approve in Minutes",
-    body: "Clear weekly commitments and checkable outcomes make approvals straightforward and decisions fast.",
-  },
-];
+export const Route = createFileRoute("/")({ component: HomePage });
 
-const checklist = [
-  "One main task per engineer with checkable outcomes",
-  "Sub-goals and go-to-market milestones accounted for",
-  "AI plan review and notes drafting with clear rationale",
-  "Zero cross-org leaks: tenant-safe, role-enforced core",
-];
+export function HomePage() {
+  const currentYear = new Date().getFullYear();
 
-export const Route = createFileRoute("/")({ component: Home });
-
-function Home() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center overflow-hidden px-6 py-20 font-[family-name:var(--font-geist-sans)]">
-      {/* Decorative grid backdrop */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] [mask-image:radial-gradient(ellipse_60%_100%_at_50%_0%,black,transparent)]"
-      >
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:44px_44px] opacity-60" />
-      </div>
-
-      <div className="flex w-full max-w-4xl flex-col items-center gap-14 text-center">
-        {/* Hero */}
-        <div className="flex flex-col items-center gap-6">
-          <Logo className="scale-125" />
-          <Badge variant="outline" className="rounded-full bg-background/60">
-            Weekly Engineering Planning
-          </Badge>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-            Plan the week.{" "}
-            <span className="text-[#4F46E5]">Ship one thing.</span>
-          </h1>
-          <p className="max-w-xl text-balance text-lg text-muted-foreground">
-            Cadence is the weekly planning tool for engineering teams: every
-            engineer commits to one thing to ship by Friday, leads approve in
-            minutes, and an AI reviewer pushes back on vague tasks before the
-            Monday meeting does.
-          </p>
-        </div>
-
-        {/* The three pillars */}
-        <div className="grid w-full gap-4 text-left sm:grid-cols-3">
-          {pillars.map(({ icon: Icon, title, body }) => (
-            <Card
-              key={title}
-              className="gap-4 transition-colors hover:border-foreground/20"
-            >
-              <CardHeader className="gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="flex size-9 items-center justify-center rounded-lg border bg-muted/40 text-[#4F46E5]">
-                    <Icon className="size-4.5" strokeWidth={1.75} />
-                  </span>
-                </div>
-                <CardTitle className="text-base">{title}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {body}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Ritual overview */}
-        <div className="w-full max-w-2xl overflow-hidden rounded-xl border bg-muted/30 text-left">
-          <div className="flex items-center gap-1.5 border-b bg-muted/50 px-4 py-2.5">
-            <span className="size-2.5 rounded-full bg-muted-foreground/25" />
-            <span className="size-2.5 rounded-full bg-muted-foreground/25" />
-            <span className="size-2.5 rounded-full bg-muted-foreground/25" />
-            <span className="ml-2 text-xs font-mono text-muted-foreground">
-              the weekly cadence
-            </span>
-          </div>
-          <div className="p-5 font-mono text-xs space-y-2 text-foreground/80 leading-relaxed">
-            <p>
-              <span className="text-[#4F46E5] font-semibold">Monday:</span>{" "}
-              Commit to 1 main ship goal + why + sub-goals. AI reviews inline.
-            </p>
-            <p>
-              <span className="text-[#4F46E5] font-semibold">
-                Tuesday–Thursday:
-              </span>{" "}
-              Execute and tick sub-goals todo ⇄ done.
-            </p>
-            <p>
-              <span className="text-[#4F46E5] font-semibold">Friday:</span>{" "}
-              Close the week with an honest answer: did it ship?
-            </p>
-          </div>
-        </div>
-
-        {/* Checklist */}
-        <ul className="grid w-full max-w-2xl gap-x-8 gap-y-3 text-left text-sm text-muted-foreground sm:grid-cols-2">
-          {checklist.map((item) => (
-            <li key={item} className="flex items-start gap-2.5">
-              <Check
-                aria-hidden
-                className="mt-0.5 size-4 shrink-0 text-[#16A34A]"
-                strokeWidth={2.5}
-              />
-              {item}
-            </li>
-          ))}
-        </ul>
-
-        {/* CTAs */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      {/* 1. Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/90 backdrop-blur-md">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <a
-            className={buttonVariants({ size: "lg" })}
-            href="http://localhost:3001/login"
+            href="/"
+            className="flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+            aria-label="Cadence home"
           >
-            Open Cadence App
-            <ArrowRight className="size-4" />
+            <Logo />
           </a>
+
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex"
+          >
+            <a
+              href="#how-it-works"
+              className="transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm cursor-pointer"
+            >
+              {copy.nav.howItWorks}
+            </a>
+            <a
+              href="#the-ai"
+              className="transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm cursor-pointer"
+            >
+              {copy.nav.theAi}
+            </a>
+            <a
+              href="#for-teams"
+              className="transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm cursor-pointer"
+            >
+              {copy.nav.forTeams}
+            </a>
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <a
+              href={`${APP_URL}/login`}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+            >
+              {copy.nav.logIn}
+            </a>
+            <a
+              href={`${APP_URL}/signup`}
+              className={`${buttonVariants({ size: "sm" })} cursor-pointer`}
+            >
+              {copy.nav.getStarted}
+            </a>
+          </div>
         </div>
-      </div>
+      </header>
+
+      <main className="flex-1">
+        {/* 2. Hero */}
+        <section
+          aria-labelledby="hero-heading"
+          className="relative overflow-hidden px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28"
+        >
+          {/* Subtle grid backdrop */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] [mask-image:radial-gradient(ellipse_60%_100%_at_50%_0%,black,transparent)]"
+          >
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:44px_44px] opacity-60" />
+          </div>
+
+          <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+            <div className="mb-6 flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-foreground/80 border-border"
+              >
+                {copy.hero.badge}
+              </Badge>
+            </div>
+
+            <h1
+              id="hero-heading"
+              className="max-w-3xl text-4xl font-bold tracking-tight text-balance sm:text-6xl text-foreground"
+            >
+              {copy.hero.headlinePart1}{" "}
+              <span className="text-primary">{copy.hero.headlinePart2}</span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl leading-relaxed">
+              {copy.hero.supporting}
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <a
+                href={`${APP_URL}/signup`}
+                className={`${buttonVariants({ size: "lg" })} h-11 px-6 text-base cursor-pointer`}
+              >
+                {copy.hero.cta}
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </a>
+              <a
+                href={`${APP_URL}/login`}
+                className={`${buttonVariants({ variant: "outline", size: "lg" })} h-11 px-6 text-base cursor-pointer`}
+              >
+                {copy.hero.secondaryCta}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. How it works */}
+        <section
+          id="how-it-works"
+          aria-labelledby="how-it-works-heading"
+          className="border-t border-border/80 bg-muted/20 px-4 py-20 sm:px-6"
+        >
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <h2
+                id="how-it-works-heading"
+                className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+              >
+                {copy.howItWorks.title}
+              </h2>
+              <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                {copy.howItWorks.subtitle}
+              </p>
+            </div>
+
+            <div className="mt-14 grid gap-6 sm:grid-cols-3">
+              {copy.howItWorks.steps.map((item) => (
+                <Card
+                  key={item.step}
+                  className="flex flex-col justify-between border-border bg-card p-6 transition-all hover:border-foreground/20"
+                >
+                  <CardHeader className="p-0 gap-3">
+                    <span className="text-sm font-bold tracking-wider text-primary font-mono">
+                      {item.step}
+                    </span>
+                    <CardTitle className="p-0">
+                      <h3 className="text-xl font-semibold text-foreground">
+                        {item.title}
+                      </h3>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 pt-4 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 4. The AI, shown for real */}
+        <section
+          id="the-ai"
+          aria-labelledby="the-ai-heading"
+          className="border-t border-border/80 px-4 py-20 sm:px-6"
+        >
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <Badge
+                variant="outline"
+                className="mb-3 rounded-full border-primary/30 bg-primary/10 text-primary text-xs font-medium"
+              >
+                <Sparkles className="mr-1.5 size-3.5" aria-hidden="true" />
+                {copy.aiSection.title}
+              </Badge>
+              <h2
+                id="the-ai-heading"
+                className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+              >
+                {copy.aiSection.subtitle}
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-base font-medium text-foreground/90 sm:text-lg">
+                {copy.aiSection.honestLine}
+              </p>
+            </div>
+
+            {/* Rendered plan review components */}
+            <div className="mt-12 grid gap-6 md:grid-cols-2">
+              {/* Card 1: Not a result */}
+              <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Main Task
+                    </span>
+                    <h3 className="font-semibold text-foreground text-base">
+                      {copy.aiSection.findings.resultTask.originalTitle}
+                    </h3>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200 text-xs shrink-0"
+                  >
+                    Flagged
+                  </Badge>
+                </div>
+
+                {/* Rendered finding card */}
+                <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50/70 p-4 text-foreground dark:border-amber-800/80 dark:bg-amber-950/30">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <AlertTriangle
+                      className="size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                      aria-hidden="true"
+                    />
+                    <Badge
+                      variant="outline"
+                      className="border-amber-300 bg-amber-100/90 text-amber-900 dark:border-amber-700 dark:bg-amber-900/60 dark:text-amber-100 text-xs font-medium"
+                    >
+                      {copy.aiSection.findings.resultTask.tag}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="border-border bg-background text-xs capitalize text-muted-foreground"
+                    >
+                      Blocker
+                    </Badge>
+                  </div>
+
+                  <p className="mt-2.5 text-sm text-foreground">
+                    {copy.aiSection.findings.resultTask.problem}
+                  </p>
+
+                  <div className="mt-3 rounded-md border border-border bg-background/95 p-3">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {copy.aiSection.findings.resultTask.actionLabel}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
+                      {copy.aiSection.findings.resultTask.rewrite}
+                    </p>
+                  </div>
+
+                  {/* Visual buttons matching app FindingCard style */}
+                  <div
+                    aria-hidden="true"
+                    className="mt-3.5 flex items-center gap-2 select-none"
+                  >
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-xs">
+                      <Check className="size-3.5" />
+                      Apply
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted">
+                      <X className="size-3.5" />
+                      Dismiss
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Missing Why & Missing GTM Goal */}
+              <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
+                <div className="flex items-center justify-between border-b border-border pb-3">
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Main Task & Plan Goals
+                    </span>
+                    <h3 className="font-semibold text-foreground text-base">
+                      {copy.aiSection.findings.missingWhy.originalTitle}
+                    </h3>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-200 text-xs shrink-0"
+                  >
+                    2 suggestions
+                  </Badge>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {/* Finding 2a: Missing Why */}
+                  <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3.5 text-foreground dark:border-indigo-900/60 dark:bg-indigo-950/20">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Info
+                        className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
+                        aria-hidden="true"
+                      />
+                      <Badge
+                        variant="outline"
+                        className="border-indigo-200 bg-indigo-100/90 text-indigo-900 dark:border-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-100 text-xs font-medium"
+                      >
+                        {copy.aiSection.findings.missingWhy.tag}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-border bg-background text-xs capitalize text-muted-foreground"
+                      >
+                        Suggestion
+                      </Badge>
+                    </div>
+
+                    <p className="mt-2 text-xs text-foreground">
+                      {copy.aiSection.findings.missingWhy.problem}
+                    </p>
+
+                    <div className="mt-2 rounded-md border border-border bg-background/95 p-2.5">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        {copy.aiSection.findings.missingWhy.actionLabel}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-foreground">
+                        {copy.aiSection.findings.missingWhy.rewrite}
+                      </p>
+                    </div>
+
+                    <div
+                      aria-hidden="true"
+                      className="mt-2.5 flex items-center gap-2 select-none"
+                    >
+                      <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground shadow-xs">
+                        <Check className="size-3" />
+                        Apply
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted">
+                        <X className="size-3" />
+                        Dismiss
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Finding 2b: Missing GTM */}
+                  <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3.5 text-foreground dark:border-indigo-900/60 dark:bg-indigo-950/20">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Info
+                        className="size-4 shrink-0 text-indigo-600 dark:text-indigo-400"
+                        aria-hidden="true"
+                      />
+                      <Badge
+                        variant="outline"
+                        className="border-indigo-200 bg-indigo-100/90 text-indigo-900 dark:border-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-100 text-xs font-medium"
+                      >
+                        {copy.aiSection.findings.missingGtm.tag}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-border bg-background text-xs capitalize text-muted-foreground"
+                      >
+                        Suggestion
+                      </Badge>
+                    </div>
+
+                    <p className="mt-2 text-xs text-foreground">
+                      {copy.aiSection.findings.missingGtm.problem}
+                    </p>
+
+                    <div className="mt-2 rounded-md border border-border bg-background/95 p-2.5">
+                      <p className="text-[11px] font-medium text-muted-foreground">
+                        {copy.aiSection.findings.missingGtm.actionLabel}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-foreground">
+                        {copy.aiSection.findings.missingGtm.rewrite}
+                      </p>
+                    </div>
+
+                    <div
+                      aria-hidden="true"
+                      className="mt-2.5 flex items-center gap-2 select-none"
+                    >
+                      <span className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground shadow-xs">
+                        <Check className="size-3" />
+                        Apply
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted">
+                        <X className="size-3" />
+                        Dismiss
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. For teams */}
+        <section
+          id="for-teams"
+          aria-labelledby="for-teams-heading"
+          className="border-t border-border/80 bg-muted/20 px-4 py-20 sm:px-6"
+        >
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <h2
+                id="for-teams-heading"
+                className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+              >
+                {copy.forTeams.title}
+              </h2>
+              <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+                {copy.forTeams.subtitle}
+              </p>
+            </div>
+
+            {/* Rendered mini table of the team's week */}
+            <div className="mt-12 overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+              <div className="border-b border-border bg-muted/40 px-4 py-3">
+                <span className="text-sm font-semibold text-foreground">
+                  {copy.forTeams.table.title}
+                </span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  {copy.forTeams.table.subtitle}
+                </span>
+              </div>
+
+              {/* Scroll container for responsiveness down to 360px */}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-left text-sm">
+                  <caption className="sr-only">
+                    Engineering team weekly commitments overview
+                  </caption>
+                  <thead className="border-b border-border bg-muted/30 text-xs font-semibold text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-4 py-3">
+                        {copy.forTeams.table.headers.member}
+                      </th>
+                      <th scope="col" className="px-4 py-3">
+                        {copy.forTeams.table.headers.status}
+                      </th>
+                      <th scope="col" className="px-4 py-3">
+                        {copy.forTeams.table.headers.tasks}
+                      </th>
+                      <th scope="col" className="px-4 py-3">
+                        {copy.forTeams.table.headers.shipped}
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-right">
+                        {copy.forTeams.table.headers.plan}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border text-foreground">
+                    {/* Row 1: Approved */}
+                    <tr className="hover:bg-muted/40 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-medium text-foreground flex items-center gap-1.5">
+                          Alex Morgan
+                          <Badge
+                            variant="secondary"
+                            className="px-1.5 py-0 text-[10px]"
+                          >
+                            Lead
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          alex@northwind.test
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="border-indigo-300 bg-indigo-50 text-indigo-800 dark:border-indigo-800/80 dark:bg-indigo-950/40 dark:text-indigo-200"
+                        >
+                          Approved
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="h-2 w-16 overflow-hidden rounded-full bg-muted"
+                            aria-hidden="true"
+                          >
+                            <div className="h-full rounded-full bg-primary w-[60%]" />
+                          </div>
+                          <span className="text-xs font-medium tabular-nums">
+                            3 / 5
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800/80 dark:bg-emerald-950/40 dark:text-emerald-200"
+                        >
+                          <CheckCircle2
+                            className="mr-1 size-3.5 text-emerald-600 dark:text-emerald-400"
+                            aria-hidden="true"
+                          />
+                          Shipped
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <span className="text-xs font-medium text-primary">
+                          View
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Row 2: Submitted */}
+                    <tr className="hover:bg-muted/40 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-medium text-foreground">
+                          Sarah Chen
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          sarah@northwind.test
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/40 dark:text-amber-200"
+                        >
+                          Submitted
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="h-2 w-16 overflow-hidden rounded-full bg-muted"
+                            aria-hidden="true"
+                          >
+                            <div className="h-full rounded-full bg-primary w-[50%]" />
+                          </div>
+                          <span className="text-xs font-medium tabular-nums">
+                            2 / 4
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs text-muted-foreground">—</span>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                          Review
+                        </span>
+                      </td>
+                    </tr>
+
+                    {/* Row 3: Not started */}
+                    <tr className="hover:bg-muted/40 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-medium text-foreground">
+                          David Kim
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          david@northwind.test
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400"
+                        >
+                          Not started
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs text-muted-foreground">
+                          0 / 0
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="text-xs text-muted-foreground">—</span>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <span className="text-xs text-muted-foreground">—</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Three key points for leads */}
+            <div className="mt-12 grid gap-6 sm:grid-cols-3">
+              {copy.forTeams.points.map((point) => (
+                <div
+                  key={point.title}
+                  className="rounded-lg border border-border bg-card p-5"
+                >
+                  <h3 className="text-base font-semibold text-foreground">
+                    {point.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {point.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Final Call to Action */}
+        <section
+          aria-labelledby="cta-heading"
+          className="border-t border-border/80 px-4 py-20 text-center sm:px-6 sm:py-24"
+        >
+          <div className="mx-auto max-w-3xl">
+            <h2
+              id="cta-heading"
+              className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            >
+              {copy.cta.headline}
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground sm:text-lg">
+              {copy.cta.supporting}
+            </p>
+            <div className="mt-8 flex justify-center">
+              <a
+                href={`${APP_URL}/signup`}
+                className={`${buttonVariants({ size: "lg" })} h-11 px-8 text-base cursor-pointer`}
+              >
+                {copy.cta.button}
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+        </section>
+      </main>
 
       {/* Footer */}
-      <footer className="mt-20 flex items-center gap-2 text-xs text-muted-foreground">
-        <Logomark className="size-4" />
-        <span>Cadence — Weekly planning for engineering teams.</span>
+      <footer className="border-t border-border bg-background px-4 py-10 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
+          <div className="flex items-center gap-3">
+            <Logomark className="size-6" />
+            <span className="text-sm font-semibold text-foreground">
+              {copy.brand.name}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              — {copy.footer.tagline}
+            </span>
+          </div>
+
+          <nav
+            aria-label="Footer navigation"
+            className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground"
+          >
+            <a
+              href="#how-it-works"
+              className="hover:text-foreground transition-colors cursor-pointer"
+            >
+              {copy.nav.howItWorks}
+            </a>
+            <a
+              href="#the-ai"
+              className="hover:text-foreground transition-colors cursor-pointer"
+            >
+              {copy.nav.theAi}
+            </a>
+            <a
+              href="#for-teams"
+              className="hover:text-foreground transition-colors cursor-pointer"
+            >
+              {copy.nav.forTeams}
+            </a>
+            <a
+              href={`${APP_URL}/login`}
+              className="hover:text-foreground transition-colors cursor-pointer"
+            >
+              {copy.nav.logIn}
+            </a>
+          </nav>
+
+          <div className="text-xs text-muted-foreground">
+            © {currentYear} {copy.footer.copyright}
+          </div>
+        </div>
       </footer>
-    </main>
+    </div>
   );
 }
