@@ -26,7 +26,7 @@ The host Postgres may be the wrong major version, so run Postgres 16 in Docker:
 ```bash
 docker run -d --name cadence-postgres \
   -e POSTGRES_USER=chamoda \
-  -e POSTGRES_DB=launchbase \
+  -e POSTGRES_DB=cadence \
   -e POSTGRES_HOST_AUTH_METHOD=trust \
   -p 5432:5432 \
   postgres:16
@@ -38,7 +38,7 @@ On later days just start the existing container:
 docker start cadence-postgres
 ```
 
-> `launchbase` is the current database name baked into the container and
+> `cadence` is the current database name baked into the container and
 > `api/.env`. Keep them in sync, or change both together.
 
 ## 2. First-time setup
@@ -53,7 +53,7 @@ uv run alembic upgrade head      # apply migrations
 ```
 
 Edit `api/.env` so `SQLALCHEMY_DATABASE_URI` points at the container above,
-e.g. `postgresql+asyncpg://chamoda:@localhost:5432/launchbase`, and set a
+e.g. `postgresql+asyncpg://chamoda:@localhost:5432/cadence`, and set a
 non-empty `SECRET_KEY`. Leave `GOOGLE_API_KEY=` empty to run with the AI
 features disabled — planning works without it.
 

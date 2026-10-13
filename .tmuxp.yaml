@@ -1,7 +1,7 @@
-session_name: launchbase
+session_name: cadence
 start_directory: ./
 windows:
-  - window_name: launchbase
+  - window_name: cadence
     start_directory: ./
     panes:
       - blank

@@ -8,7 +8,7 @@ Hard rules:
 - Tenancy and roles are enforced by the API; the UI only hides things cosmetically.
 - 404 = no read access, 403 = can read but not act. Show a clear "no access" page for both.
 - Staff panel never shows plan or task text.
-- Brand: "Cadence", indigo #4F46E5, font Inter. Nothing user-facing may say "Launchbase".
+- Brand: "Cadence", indigo #4F46E5, font Inter. Nothing user-facing may say the template name.
 - AI features are optional; show plain-language notices on 503/429/504/502. Never call AI on keystroke.
 - Run only the checks for the folder you changed: npm run type-check && npm run build.
 - Commit small, no --no-verify. Do not touch .gitignore, RUNNING.md, startup.sh.

@@ -21,7 +21,7 @@ SETUP_LOG="$LOG_DIR/setup.log"
 
 PG_CONTAINER="${PG_CONTAINER:-cadence-postgres}"
 PG_USER="${PG_USER:-chamoda}"
-PG_DB="${PG_DB:-launchbase}"
+PG_DB="${PG_DB:-cadence}"
 READY_TIMEOUT="${READY_TIMEOUT:-90}"
 
 ALL_SERVICES=(api site app internal)
